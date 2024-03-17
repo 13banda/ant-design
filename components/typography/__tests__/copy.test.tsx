@@ -1,7 +1,8 @@
 import React from 'react';
-import { mount } from 'enzyme';
-import { SmileOutlined, LikeOutlined } from '@ant-design/icons';
+import { LikeOutlined, SmileOutlined } from '@ant-design/icons';
+import * as copyObj from 'copy-to-clipboard';
 
+import { fireEvent, render, waitFakeTimer, waitFor } from '../../../tests/utils';
 import Base from '../Base';
 
 describe('Typography copy', () => {
@@ -23,8 +24,8 @@ describe('Typography copy', () => {
         tooltipLength,
       }: {
         name: string;
-        icon?: boolean | React.ReactNode;
-        tooltips?: boolean | React.ReactNode;
+        icon?: React.ReactNode;
+        tooltips?: React.ReactNode;
         iconClassNames?: string[];
         iconTexts?: string[];
         tooltipTexts?: string[];
@@ -32,57 +33,71 @@ describe('Typography copy', () => {
       }) {
         it(name, async () => {
           jest.useFakeTimers();
-          const wrapper = mount(
+          const { container, unmount } = render(
             <Base component="p" copyable={{ icon, tooltips }}>
               test copy
             </Base>,
           );
+
           if (iconClassNames[0] !== undefined) {
-            expect(wrapper.exists(iconClassNames[0])).toBeTruthy();
+            expect(container.querySelector(iconClassNames[0])).not.toBeNull();
           }
           if (iconTexts[0] !== undefined) {
-            expect(wrapper.find('.ant-typography-copy').at(0).text()).toBe(iconTexts[0]);
+            expect(container.querySelectorAll('.ant-typography-copy')[0].textContent).toBe(
+              iconTexts[0],
+            );
           }
 
-          wrapper.find('.ant-typography-copy').first().simulate('mouseenter');
-          jest.runAllTimers();
-          wrapper.update();
+          fireEvent.mouseEnter(container.querySelectorAll('.ant-typography-copy')[0]);
+          await waitFakeTimer();
 
           if (tooltipTexts[0] !== undefined) {
-            expect(wrapper.find('.ant-tooltip-inner').text()).toBe(tooltipTexts[0]);
+            await waitFor(() => {
+              expect(container.querySelector('.ant-tooltip-inner')?.textContent).toBe(
+                tooltipTexts[0],
+              );
+            });
           }
 
           if (tooltipLength !== undefined) {
-            expect(wrapper.find('.ant-tooltip-inner').length).toBe(tooltipLength);
+            await waitFor(() => {
+              expect(container.querySelectorAll('.ant-tooltip-inner').length).toBe(tooltipLength);
+            });
           }
 
-          wrapper.find('.ant-typography-copy').first().simulate('click');
+          fireEvent.click(container.querySelectorAll('.ant-typography-copy')[0]);
           jest.useRealTimers();
           if (iconClassNames[1] !== undefined) {
-            expect(wrapper.exists(iconClassNames[1])).toBeTruthy();
+            expect(container.querySelector(iconClassNames[1])).not.toBeNull();
           }
-          wrapper.find('.ant-typography-copy').first().simulate('mouseenter');
-          wrapper.update();
+          fireEvent.mouseEnter(container.querySelectorAll('.ant-typography-copy')[0]);
 
-          wrapper.find('.ant-typography-copy').first().simulate('mouseenter');
+          fireEvent.mouseEnter(container.querySelectorAll('.ant-typography-copy')[0]);
 
           if (tooltipTexts[1] !== undefined) {
-            expect(wrapper.find('.ant-tooltip-inner').text()).toBe(tooltipTexts[1]);
+            const expectedInner = tooltipTexts[1] === '' ? tooltipTexts[0] : tooltipTexts[1];
+            await waitFor(() => {
+              expect(container.querySelector('.ant-tooltip-inner')?.textContent).toBe(
+                expectedInner,
+              );
+            });
           }
 
           if (iconTexts[1] !== undefined) {
-            expect(wrapper.find('.ant-typography-copy').at(0).text()).toBe(iconTexts[1]);
+            expect(container.querySelectorAll('.ant-typography-copy')[0].textContent).toBe(
+              iconTexts[1],
+            );
           }
 
           jest.useFakeTimers();
-          wrapper.find('.ant-typography-copy').first().simulate('click');
-          jest.runAllTimers();
-          wrapper.update();
+          fireEvent.click(container.querySelectorAll('.ant-typography-copy')[0]);
+          await waitFakeTimer();
 
-          wrapper.unmount();
+          unmount();
           jest.useRealTimers();
         });
       }
+
       const dom = (
         <>
           <span>1</span>2
@@ -196,15 +211,57 @@ describe('Typography copy', () => {
 
     it('copy click event stopPropagation', () => {
       const onDivClick = jest.fn();
-      const wrapper = mount(
+      const { container: wrapper } = render(
         <div onClick={onDivClick}>
           <Base component="p" copyable>
             test copy
           </Base>
         </div>,
       );
-      wrapper.find('.ant-typography-copy').first().simulate('click');
-      expect(onDivClick).not.toBeCalled();
+      fireEvent.click(wrapper.querySelectorAll('.ant-typography-copy')[0]);
+      expect(onDivClick).not.toHaveBeenCalled();
+    });
+
+    it('the first parameter of onCopy is the click event', () => {
+      function onCopy(e: React.MouseEvent<HTMLDivElement>) {
+        expect(e).not.toBeUndefined();
+      }
+
+      const { container: wrapper } = render(
+        <Base component="p" copyable={{ onCopy }}>
+          test copy
+        </Base>,
+      );
+      fireEvent.click(wrapper.querySelectorAll('.ant-typography-copy')[0]);
+    });
+
+    it('copy to clipboard', async () => {
+      jest.useFakeTimers();
+      const spy = jest.spyOn(copyObj, 'default');
+      const originText = 'origin text.';
+      const nextText = 'next text.';
+      const Test = () => {
+        const [dynamicText, setDynamicText] = React.useState(originText);
+        React.useEffect(() => {
+          setTimeout(() => {
+            setDynamicText(nextText);
+          }, 500);
+        }, []);
+        return (
+          <Base component="p" copyable>
+            {dynamicText}
+          </Base>
+        );
+      };
+      const { container: wrapper } = render(<Test />);
+      const copyBtn = wrapper.querySelectorAll('.ant-typography-copy')[0];
+      fireEvent.click(copyBtn);
+      expect(spy.mock.calls[0][0]).toEqual(originText);
+      await waitFakeTimer();
+      spy.mockReset();
+      fireEvent.click(copyBtn);
+      expect(spy.mock.calls[0][0]).toEqual(nextText);
+      jest.useRealTimers();
     });
   });
 });

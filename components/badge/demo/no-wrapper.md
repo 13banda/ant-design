@@ -1,10 +1,3 @@
----
-order: 1
-title:
-  zh-CN: 独立使用
-  en-US: Standalone
----
-
 ## zh-CN
 
 不包裹任何元素即是独立使用，可自定样式展现。
@@ -14,27 +7,3 @@ title:
 ## en-US
 
 Used in standalone when children is empty.
-
-```jsx
-import { Badge, Space, Switch } from 'antd';
-import { ClockCircleOutlined } from '@ant-design/icons';
-
-const Demo = () => {
-  const [show, setShow] = React.useState(true);
-
-  return (
-    <Space>
-      <Switch checked={show} onChange={() => setShow(!show)} />
-      <Badge count={show ? 25 : 0} />
-      <Badge count={show ? <ClockCircleOutlined style={{ color: '#f5222d' }} /> : 0} />
-      <Badge
-        className="site-badge-count-109"
-        count={show ? 109 : 0}
-        style={{ backgroundColor: '#52c41a' }}
-      />
-    </Space>
-  );
-};
-
-ReactDOM.render(<Demo />, mountNode);
-```

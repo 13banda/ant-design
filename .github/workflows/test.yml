@@ -4,15 +4,27 @@ name: ✅ test
 
 on: [push, pull_request]
 
+# Cancel prev CI if new commit come
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
 jobs:
   setup:
     runs-on: ubuntu-latest
     steps:
       - name: checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
 
       - name: cache package-lock.json
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path: package-temp-dir
           key: lock-${{ github.sha }}
@@ -28,7 +40,7 @@ jobs:
           cp package-lock.json package-temp-dir
       - name: cache node_modules
         id: node_modules_cache_id
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path: node_modules
           key: node_modules-${{ hashFiles('**/package-temp-dir/package-lock.json') }}
@@ -37,32 +49,255 @@ jobs:
         if: steps.node_modules_cache_id.outputs.cache-hit != 'true'
         run: npm ci
 
-  compile:
+  lint:
     runs-on: ubuntu-latest
     steps:
       - name: checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
 
       - name: restore cache from package-lock.json
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path: package-temp-dir
           key: lock-${{ github.sha }}
 
       - name: restore cache from node_modules
-        uses: actions/cache@v2
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: node_modules-${{ hashFiles('**/package-temp-dir/package-lock.json') }}
+
+      - name: lint
+        run: npm run lint
+
+      - name: lint:react-16
+        run: npm run compile && npm run install-react-16 && npm run tsc:old
+
+      - name: lint:react-17
+        run: npm run compile && npm run install-react-17 && npm run tsc:old
+    needs: setup
+
+  check_metadata:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: restore cache from package-lock.json
+        uses: actions/cache@v4
+        with:
+          path: package-temp-dir
+          key: lock-${{ github.sha }}
+
+      - name: restore cache from node_modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: node_modules-${{ hashFiles('**/package-temp-dir/package-lock.json') }}
+    needs: setup
+
+  ################################ Dist ################################
+  dist:
+    name: dist
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: restore cache from package-lock.json
+        uses: actions/cache@v4
+        with:
+          path: package-temp-dir
+          key: lock-${{ github.sha }}
+
+      - name: restore cache from node_modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: node_modules-${{ hashFiles('**/package-temp-dir/package-lock.json') }}
+
+      - name: cache dist
+        uses: actions/cache@v4
+        with:
+          path: dist
+          key: dist-${{ github.sha }}
+
+      - name: dist
+        run: npm run dist
+        env:
+          NODE_OPTIONS: "--max_old_space_size=4096"
+          CI: 1
+    needs: setup
+
+  ################################ Test ################################
+  normal-test:
+    name: test
+    strategy:
+      matrix:
+        react: ['16', '17', '18']
+        module: ['dom', 'node', 'dist', 'dist-min']
+        shard: ['1/2', '2/2']
+    env:
+      REACT: ${{ matrix.react }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: restore cache from package-lock.json
+        uses: actions/cache@v4
+        with:
+          path: package-temp-dir
+          key: lock-${{ github.sha }}
+
+      - name: restore cache from node_modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: node_modules-${{ hashFiles('**/package-temp-dir/package-lock.json') }}
+
+      - name: install react 16
+        if: ${{ matrix.react == '16' }}
+        run: npm run install-react-16
+
+      - name: install react 17
+        if: ${{ matrix.react == '17' }}
+        run: npm run install-react-17
+
+      - name: install react 18
+        if: ${{ matrix.react == '18' }}
+        run: npm run install-react-18
+
+      - name: restore cache from dist
+        if: ${{ matrix.module == 'dist' || matrix.module == 'dist-min' }}
+        uses: actions/cache@v4
+        with:
+          path: dist
+          key: dist-${{ github.sha }}
+
+      - name: check
+        if: ${{ matrix.module == 'dist' }}
+        run: node ./tests/dekko/dist.test.js
+
+      - name: check use client
+        if: ${{ matrix.module == 'dist' }}
+        run: node ./tests/dekko/use-client.test.js
+        env:
+          LIB_DIR: dist
+
+      # dom test
+      - name: dom test
+        if: ${{ matrix.module == 'dom' }}
+        run: npm test -- --maxWorkers=2 --shard=${{matrix.shard}} --coverage
+
+      - name: persist coverages
+        if: ${{ matrix.module == 'dom' && matrix.react == '18' }}
+        run: |
+          mkdir persist-coverage
+          mv coverage/coverage-final.json persist-coverage/react-${{matrix.react}}-test-${{matrix.module}}-${{strategy.job-index}}.json
+
+      - uses: actions/upload-artifact@v4
+        if: ${{ matrix.module == 'dom' && matrix.react == '18' }}
+        name: upload coverages
+        with:
+          name: coverage-artifacts-${{ matrix.module }}-${{ matrix.react }}-${{ strategy.job-index }}
+          path: persist-coverage/
+
+      # node test
+      - name: node test
+        if: ${{ matrix.module == 'node' }}
+        run: npm run test-node
+
+      # dist test
+      - name: dist test
+        if: ${{ matrix.module == 'dist' }}
+        run: npm test
+        env:
+          LIB_DIR: dist
+
+      # dist min test
+      - name: dist-min test
+        if: ${{ matrix.module == 'dist-min' }}
+        run: npm test
+        env:
+          LIB_DIR: dist-min
+    needs: [setup, dist]
+
+  ############################ Test Coverage ###########################
+  upload-test-coverage:
+    name: test-coverage
+    runs-on: ubuntu-latest
+    needs: [normal-test]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: coverage-artifacts-*
+          merge-multiple: true
+          path: persist-coverage
+      - name: Merge Code Coverage
+        run: |
+          npx nyc merge persist-coverage/ coverage/coverage-final.json
+          npx nyc report --reporter text -t coverage --report-dir coverage
+          rm -rf persist-coverage
+      - name: Upload coverage to codecov
+        uses: codecov/codecov-action@v4
+        with:
+          # use own token to upload coverage reports
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+  ########################### Compile & Test ###########################
+  compile:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: restore cache from package-lock.json
+        uses: actions/cache@v4
+        with:
+          path: package-temp-dir
+          key: lock-${{ github.sha }}
+
+      - name: restore cache from node_modules
+        uses: actions/cache@v4
         with:
           path: node_modules
           key: node_modules-${{ hashFiles('**/package-temp-dir/package-lock.json') }}
 
       - name: cache lib
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path: lib
           key: lib-${{ github.sha }}
 
       - name: cache es
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path: es
           key: es-${{ github.sha }}
@@ -72,428 +307,72 @@ jobs:
 
       - name: check
         run: node ./tests/dekko/lib.test.js
+
+      - name: check use client
+        run: node ./tests/dekko/use-client.test.js
+
     needs: setup
 
-  lint:
+  compiled-module-test:
+    name: module test
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        react: ['16', '17', '18']
+        module: [lib, es]
+        shard: ['1/2', '2/2']
+    env:
+      REACT: ${{ matrix.react }}
     steps:
       - name: checkout
-        uses: actions/checkout@v2
+        # lib only run in master branch not in pull request
+        if: ${{ github.event_name != 'pull_request' || matrix.module != 'lib' }}
+        uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
 
       - name: restore cache from package-lock.json
-        uses: actions/cache@v2
+        # lib only run in master branch not in pull request
+        if: ${{ github.event_name != 'pull_request' || matrix.module != 'lib' }}
+        uses: actions/cache@v4
         with:
           path: package-temp-dir
           key: lock-${{ github.sha }}
 
       - name: restore cache from node_modules
-        uses: actions/cache@v2
+        # lib only run in master branch not in pull request
+        if: ${{ github.event_name != 'pull_request' || matrix.module != 'lib' }}
+        uses: actions/cache@v4
         with:
           path: node_modules
           key: node_modules-${{ hashFiles('**/package-temp-dir/package-lock.json') }}
 
-      - name: lint
-        run: npm run lint
-    needs: setup
-
-  tsx-demo:
-    runs-on: ubuntu-latest
-    steps:
-      - name: checkout
-        uses: actions/checkout@v2
-
-      - name: restore cache from package-lock.json
-        uses: actions/cache@v2
+      - name: restore cache from ${{ matrix.module }}
+        # lib only run in master branch not in pull request
+        if: ${{ github.event_name != 'pull_request' || matrix.module != 'lib' }}
+        uses: actions/cache@v4
         with:
-          path: package-temp-dir
-          key: lock-${{ github.sha }}
+          path: ${{ matrix.module }}
+          key: ${{ matrix.module }}-${{ github.sha }}
 
-      - name: restore cache from node_modules
-        uses: actions/cache@v2
-        with:
-          path: node_modules
-          key: node_modules-${{ hashFiles('**/package-temp-dir/package-lock.json') }}
+      - name: install react 16
+        if: ${{ matrix.react == '16' && (github.event_name != 'pull_request' || matrix.module != 'lib') }}
+        run: npm run install-react-16
 
-      - name: tsx-demo
-        run: npm run check-ts-demo
-    needs: setup
+      - name: install react 17
+        if: ${{ matrix.react == '17' && (github.event_name != 'pull_request' || matrix.module != 'lib') }}
+        run: npm run install-react-17
 
-  check_metadata:
-    runs-on: ubuntu-latest
-    steps:
-      - name: checkout
-        uses: actions/checkout@v2
-
-      - name: restore cache from package-lock.json
-        uses: actions/cache@v2
-        with:
-          path: package-temp-dir
-          key: lock-${{ github.sha }}
-
-      - name: restore cache from node_modules
-        uses: actions/cache@v2
-        with:
-          path: node_modules
-          key: node_modules-${{ hashFiles('**/package-temp-dir/package-lock.json') }}
-
-      - name: check demo
-        run: node ./scripts/check-demo.js
-    needs: setup
-
-  react-17-dom:
-    name: react@17.x / dom
-    runs-on: ubuntu-latest
-    steps:
-      - name: checkout
-        uses: actions/checkout@v2
-
-      - name: restore cache from package-lock.json
-        uses: actions/cache@v2
-        with:
-          path: package-temp-dir
-          key: lock-${{ github.sha }}
-
-      - name: restore cache from node_modules
-        uses: actions/cache@v2
-        with:
-          path: node_modules
-          key: node_modules-${{ hashFiles('**/package-temp-dir/package-lock.json') }}
+      - name: install react 18
+        if: ${{ matrix.react == '18' && (github.event_name != 'pull_request' || matrix.module != 'lib') }}
+        run: npm run install-react-18
 
       - name: test
-        run: npm test -- -w 1 --coverage
-
-      - name: coverage
-        run: bash <(curl -s https://codecov.io/bash)
-    needs: setup
-
-  react-17-node:
-    name: react@17.x / node
-    runs-on: ubuntu-latest
-    steps:
-      - name: checkout
-        uses: actions/checkout@v2
-
-      - name: restore cache from package-lock.json
-        uses: actions/cache@v2
-        with:
-          path: package-temp-dir
-          key: lock-${{ github.sha }}
-
-      - name: restore cache from node_modules
-        uses: actions/cache@v2
-        with:
-          path: node_modules
-          key: node_modules-${{ hashFiles('**/package-temp-dir/package-lock.json') }}
-
-      - name: test
-        run: npm run test-node
-    needs: setup
-
-  react-17-lib:
-    name: react@17.x / lib
-    runs-on: ubuntu-latest
-    steps:
-      - name: checkout
-        uses: actions/checkout@v2
-
-      - name: restore cache from package-lock.json
-        uses: actions/cache@v2
-        with:
-          path: package-temp-dir
-          key: lock-${{ github.sha }}
-
-      - name: restore cache from node_modules
-        uses: actions/cache@v2
-        with:
-          path: node_modules
-          key: node_modules-${{ hashFiles('**/package-temp-dir/package-lock.json') }}
-
-      - name: restore cache from lib
-        uses: actions/cache@v2
-        with:
-          path: lib
-          key: lib-${{ github.sha }}
-
-      - name: test
-        run: npm test
+        # lib only run in master branch not in pull request
+        if: ${{ github.event_name != 'pull_request' || matrix.module != 'lib' }}
+        run: npm test -- --maxWorkers=2 --shard=${{matrix.shard}}
         env:
-          LIB_DIR: lib
+          LIB_DIR: ${{ matrix.module }}
     needs: compile
-
-  react-17-es:
-    name: react@17.x / es
-    runs-on: ubuntu-latest
-    steps:
-      - name: checkout
-        uses: actions/checkout@v2
-
-      - name: restore cache from package-lock.json
-        uses: actions/cache@v2
-        with:
-          path: package-temp-dir
-          key: lock-${{ github.sha }}
-
-      - name: restore cache from node_modules
-        uses: actions/cache@v2
-        with:
-          path: node_modules
-          key: node_modules-${{ hashFiles('**/package-temp-dir/package-lock.json') }}
-
-      - name: restore cache from es
-        uses: actions/cache@v2
-        with:
-          path: es
-          key: es-${{ github.sha }}
-
-      - name: test
-        run: npm test
-        env:
-          LIB_DIR: es
-    needs: compile
-
-  react-17-dist:
-    name: react@17.x / dist
-    runs-on: ubuntu-latest
-    steps:
-      - name: checkout
-        uses: actions/checkout@v2
-
-      - name: restore cache from package-lock.json
-        uses: actions/cache@v2
-        with:
-          path: package-temp-dir
-          key: lock-${{ github.sha }}
-
-      - name: restore cache from node_modules
-        uses: actions/cache@v2
-        with:
-          path: node_modules
-          key: node_modules-${{ hashFiles('**/package-temp-dir/package-lock.json') }}
-
-      - name: dist
-        run: npm run dist
-        env:
-          NODE_OPTIONS: --max_old_space_size=4096
-
-      - name: check
-        run: node ./tests/dekko/dist.test.js
-
-      - name: bundlesize
-        run: npm run bundlesize
-        env:
-          BUNDLESIZE_GITHUB_TOKEN: ${{ secrets.BUNDLESIZE_GITHUB_TOKEN }}
-
-      - name: test
-        run: npm test
-        env:
-          LIB_DIR: dist
-    needs: setup
-
-  react-16-dom:
-    name: react@16.x / dom
-    runs-on: ubuntu-latest
-    env:
-      REACT: 16
-    steps:
-      - name: checkout
-        uses: actions/checkout@v2
-
-      - name: restore cache from package-lock.json
-        uses: actions/cache@v2
-        with:
-          path: package-temp-dir
-          key: lock-${{ github.sha }}
-
-      - name: restore cache from node_modules
-        uses: actions/cache@v2
-        with:
-          path: node_modules
-          key: node_modules-${{ hashFiles('**/package-temp-dir/package-lock.json') }}
-
-      - name: install react 16
-        run: npm run install-react-16
-
-      - name: test
-        run: npm test -- -w 1 --coverage
-    needs: setup
-
-  react-16-node:
-    name: react@16.x / node
-    runs-on: ubuntu-latest
-    env:
-      REACT: 16
-    steps:
-      - name: checkout
-        uses: actions/checkout@v2
-
-      - name: restore cache from package-lock.json
-        uses: actions/cache@v2
-        with:
-          path: package-temp-dir
-          key: lock-${{ github.sha }}
-
-      - name: restore cache from node_modules
-        uses: actions/cache@v2
-        with:
-          path: node_modules
-          key: node_modules-${{ hashFiles('**/package-temp-dir/package-lock.json') }}
-
-      - name: install react 16
-        run: npm run install-react-16
-
-      - name: test
-        run: npm run test-node
-    needs: setup
-
-  react-16-lib:
-    name: react@16.x / lib
-    runs-on: ubuntu-latest
-    env:
-      REACT: 16
-    steps:
-      - name: checkout
-        uses: actions/checkout@v2
-
-      - name: restore cache from package-lock.json
-        uses: actions/cache@v2
-        with:
-          path: package-temp-dir
-          key: lock-${{ github.sha }}
-
-      - name: restore cache from node_modules
-        uses: actions/cache@v2
-        with:
-          path: node_modules
-          key: node_modules-${{ hashFiles('**/package-temp-dir/package-lock.json') }}
-
-      - name: restore cache from lib
-        uses: actions/cache@v2
-        with:
-          path: lib
-          key: lib-${{ github.sha }}
-
-      - name: install react 16
-        run: npm run install-react-16
-
-      - name: test
-        run: npm test
-        env:
-          LIB_DIR: lib
-    needs: compile
-
-  react-16-es:
-    name: react@16.x / es
-    runs-on: ubuntu-latest
-    env:
-      REACT: 16
-    steps:
-      - name: checkout
-        uses: actions/checkout@v2
-
-      - name: restore cache from package-lock.json
-        uses: actions/cache@v2
-        with:
-          path: package-temp-dir
-          key: lock-${{ github.sha }}
-
-      - name: restore cache from node_modules
-        uses: actions/cache@v2
-        with:
-          path: node_modules
-          key: node_modules-${{ hashFiles('**/package-temp-dir/package-lock.json') }}
-
-      - name: restore cache from es
-        uses: actions/cache@v2
-        with:
-          path: es
-          key: es-${{ github.sha }}
-
-      - name: install react 16
-        run: npm run install-react-16
-
-      - name: test
-        run: npm test
-        env:
-          LIB_DIR: es
-    needs: compile
-
-  react-16-dist:
-    name: react@16.x / dist
-    runs-on: ubuntu-latest
-    env:
-      REACT: 16
-    steps:
-      - name: checkout
-        uses: actions/checkout@v2
-
-      - name: restore cache from package-lock.json
-        uses: actions/cache@v2
-        with:
-          path: package-temp-dir
-          key: lock-${{ github.sha }}
-
-      - name: restore cache from node_modules
-        uses: actions/cache@v2
-        with:
-          path: node_modules
-          key: node_modules-${{ hashFiles('**/package-temp-dir/package-lock.json') }}
-
-      - name: install react 16
-        run: npm run install-react-16
-
-      - name: dist
-        run: npm run dist
-        env:
-          NODE_OPTIONS: --max_old_space_size=4096
-
-      - name: check
-        run: node ./tests/dekko/dist.test.js
-
-      - name: test
-        run: npm test
-        env:
-          LIB_DIR: dist
-    needs: setup
-
-  style:
-    name: style compile
-    runs-on: ubuntu-latest
-    steps:
-      - name: checkout
-        uses: actions/checkout@v2
-
-      - name: restore cache from package-lock.json
-        uses: actions/cache@v2
-        with:
-          path: package-temp-dir
-          key: lock-${{ github.sha }}
-
-      - name: restore cache from node_modules
-        uses: actions/cache@v2
-        with:
-          path: node_modules
-          key: node_modules-${{ hashFiles('**/package-temp-dir/package-lock.json') }}
-
-      - name: compile
-        run: npm run compile
-
-      - name: dist
-        run: npm run dist
-        env:
-          NODE_OPTIONS: --max_old_space_size=4096
-
-      - name: lessc default
-        run: npx lessc --js ./dist/antd.less
-
-      - name: lessc dark
-        run: npx lessc --js ./dist/antd.dark.less
-
-      - name: lessc variable
-        run: npx lessc --js ./dist/antd.variable.less
-
-      - name: lessc component
-        run: npx lessc --js ./es/button/style/index.less
-
-      - name: lessc mixins
-        run: npx lessc --js ./es/style/mixins/index.less
-    needs: setup

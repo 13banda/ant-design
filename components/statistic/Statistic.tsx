@@ -1,20 +1,19 @@
-import * as React from 'react';
 import classNames from 'classnames';
+import * as React from 'react';
+import pickAttrs from 'rc-util/lib/pickAttrs';
 
-import { ConfigConsumerProps } from '../config-provider';
-import { withConfigConsumer } from '../config-provider/context';
+import type { ConfigConsumerProps } from '../config-provider';
+import { ConfigContext } from '../config-provider';
 import Skeleton from '../skeleton';
 import StatisticNumber from './Number';
-import Countdown from './Countdown';
-import { valueType, FormatConfig } from './utils';
+import useStyle from './style';
+import type { FormatConfig, valueType } from './utils';
+import type { HTMLAriaDataAttributes } from '../_util/aria-data-attrs';
 
-interface StatisticComponent {
-  Countdown: typeof Countdown;
-}
-
-export interface StatisticProps extends FormatConfig {
+interface StatisticReactProps extends FormatConfig {
   prefixCls?: string;
   className?: string;
+  rootClassName?: string;
   style?: React.CSSProperties;
   value?: valueType;
   valueStyle?: React.CSSProperties;
@@ -27,10 +26,13 @@ export interface StatisticProps extends FormatConfig {
   onMouseLeave?: React.MouseEventHandler<HTMLDivElement>;
 }
 
-const Statistic: React.FC<StatisticProps & ConfigConsumerProps> = props => {
+export type StatisticProps = HTMLAriaDataAttributes & StatisticReactProps;
+
+const Statistic: React.FC<StatisticProps & HTMLAriaDataAttributes> = (props) => {
   const {
-    prefixCls,
+    prefixCls: customizePrefixCls,
     className,
+    rootClassName,
     style,
     valueStyle,
     value = 0,
@@ -38,41 +40,72 @@ const Statistic: React.FC<StatisticProps & ConfigConsumerProps> = props => {
     valueRender,
     prefix,
     suffix,
-    loading,
-    direction,
+    loading = false,
+    /* --- FormatConfig starts --- */
+    formatter,
+    precision,
+    decimalSeparator = '.',
+    groupSeparator = ',',
+    /* --- FormatConfig starts --- */
     onMouseEnter,
     onMouseLeave,
+    ...rest
   } = props;
-  const valueNode = <StatisticNumber {...props} value={value} />;
+
+  const { getPrefixCls, direction, statistic } =
+    React.useContext<ConfigConsumerProps>(ConfigContext);
+
+  const prefixCls = getPrefixCls('statistic', customizePrefixCls);
+
+  const [wrapCSSVar, hashId, cssVarCls] = useStyle(prefixCls);
+
+  const valueNode: React.ReactNode = (
+    <StatisticNumber
+      decimalSeparator={decimalSeparator}
+      groupSeparator={groupSeparator}
+      prefixCls={prefixCls}
+      formatter={formatter}
+      precision={precision}
+      value={value}
+    />
+  );
+
   const cls = classNames(
     prefixCls,
     {
       [`${prefixCls}-rtl`]: direction === 'rtl',
     },
+    statistic?.className,
     className,
+    rootClassName,
+    hashId,
+    cssVarCls,
   );
-  return (
-    <div className={cls} style={style} onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}>
+
+  const restProps = pickAttrs(rest, { aria: true, data: true });
+
+  return wrapCSSVar(
+    <div
+      {...restProps}
+      className={cls}
+      style={{ ...statistic?.style, ...style }}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
+    >
       {title && <div className={`${prefixCls}-title`}>{title}</div>}
-      <Skeleton paragraph={false} loading={loading}>
+      <Skeleton paragraph={false} loading={loading} className={`${prefixCls}-skeleton`}>
         <div style={valueStyle} className={`${prefixCls}-content`}>
           {prefix && <span className={`${prefixCls}-content-prefix`}>{prefix}</span>}
           {valueRender ? valueRender(valueNode) : valueNode}
           {suffix && <span className={`${prefixCls}-content-suffix`}>{suffix}</span>}
         </div>
       </Skeleton>
-    </div>
+    </div>,
   );
 };
 
-Statistic.defaultProps = {
-  decimalSeparator: '.',
-  groupSeparator: ',',
-  loading: false,
-};
+if (process.env.NODE_ENV !== 'production') {
+  Statistic.displayName = 'Statistic';
+}
 
-const WrapperStatistic = withConfigConsumer<StatisticProps>({
-  prefixCls: 'statistic',
-})<StatisticComponent>(Statistic);
-
-export default WrapperStatistic;
+export default Statistic;

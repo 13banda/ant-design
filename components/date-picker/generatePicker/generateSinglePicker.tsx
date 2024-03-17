@@ -1,165 +1,227 @@
 import * as React from 'react';
-import classNames from 'classnames';
+import { forwardRef, useContext, useImperativeHandle } from 'react';
 import CalendarOutlined from '@ant-design/icons/CalendarOutlined';
 import ClockCircleOutlined from '@ant-design/icons/ClockCircleOutlined';
-import CloseCircleFilled from '@ant-design/icons/CloseCircleFilled';
-import RCPicker from 'rc-picker';
-import { PickerMode } from 'rc-picker/lib/interface';
-import { GenerateConfig } from 'rc-picker/lib/generate/index';
-import enUS from '../locale/en_US';
-import { getPlaceholder } from '../util';
-import devWarning from '../../_util/devWarning';
-import { ConfigContext, ConfigConsumerProps } from '../../config-provider';
-import LocaleReceiver from '../../locale-provider/LocaleReceiver';
-import SizeContext from '../../config-provider/SizeContext';
-import {
-  PickerProps,
-  PickerLocale,
-  PickerDateProps,
-  PickerTimeProps,
-  getTimeProps,
-  Components,
-} from '.';
-import { PickerComponentClass } from './interface';
+import classNames from 'classnames';
+import RCPicker, { type PickerRef } from 'rc-picker';
+import type { GenerateConfig } from 'rc-picker/lib/generate/index';
+import type { PickerMode } from 'rc-picker/lib/interface';
 
-export default function generatePicker<DateType>(generateConfig: GenerateConfig<DateType>) {
+import { useZIndex } from '../../_util/hooks/useZIndex';
+import { getMergedStatus, getStatusClassNames } from '../../_util/statusUtils';
+import type { AnyObject } from '../../_util/type';
+import { devUseWarning } from '../../_util/warning';
+import { ConfigContext } from '../../config-provider';
+import DisabledContext from '../../config-provider/DisabledContext';
+import useCSSVarCls from '../../config-provider/hooks/useCSSVarCls';
+import useSize from '../../config-provider/hooks/useSize';
+import { FormItemInputContext } from '../../form/context';
+import useVariant from '../../form/hooks/useVariants';
+import { useLocale } from '../../locale';
+import { NoCompactStyle, useCompactItemContext } from '../../space/Compact';
+import enUS from '../locale/en_US';
+import useStyle from '../style';
+import { getPlaceholder, transPlacement2DropdownAlign, useIcons } from '../util';
+import type { GenericTimePickerProps, PickerProps, PickerPropsWithMultiple } from './interface';
+import useComponents from './useComponents';
+
+export default function generatePicker<DateType extends AnyObject>(
+  generateConfig: GenerateConfig<DateType>,
+) {
   type DatePickerProps = PickerProps<DateType>;
+  type TimePickerProps = GenericTimePickerProps<DateType>;
 
   function getPicker<InnerPickerProps extends DatePickerProps>(
     picker?: PickerMode,
     displayName?: string,
   ) {
-    class Picker extends React.Component<InnerPickerProps> {
-      static contextType = ConfigContext;
+    const consumerName = displayName === 'TimePicker' ? 'timePicker' : 'datePicker';
+    const Picker = forwardRef<PickerRef, InnerPickerProps>((props, ref) => {
+      const {
+        prefixCls: customizePrefixCls,
+        getPopupContainer: customizeGetPopupContainer,
+        components,
+        style,
+        className,
+        rootClassName,
+        size: customizeSize,
+        bordered,
+        placement,
+        placeholder,
+        popupClassName,
+        dropdownClassName,
+        disabled: customDisabled,
+        status: customStatus,
+        variant: customVariant,
+        onCalendarChange,
+        ...restProps
+      } = props;
 
-      static displayName: string;
+      const {
+        getPrefixCls,
+        direction,
+        getPopupContainer,
+        // Consume different styles according to different names
+        [consumerName]: consumerStyle,
+      } = useContext(ConfigContext);
 
-      context: ConfigConsumerProps;
+      const prefixCls = getPrefixCls('picker', customizePrefixCls);
+      const { compactSize, compactItemClassnames } = useCompactItemContext(prefixCls, direction);
+      const innerRef = React.useRef<PickerRef>(null);
 
-      pickerRef = React.createRef<RCPicker<DateType>>();
+      const [variant, enableVariantCls] = useVariant(customVariant, bordered);
 
-      constructor(props: InnerPickerProps) {
-        super(props);
-        devWarning(
+      const rootCls = useCSSVarCls(prefixCls);
+      const [wrapCSSVar, hashId, cssVarCls] = useStyle(prefixCls, rootCls);
+
+      useImperativeHandle(ref, () => innerRef.current!);
+
+      const additionalProps = {
+        showToday: true,
+      };
+
+      const mergedPicker = picker || props.picker;
+
+      const rootPrefixCls = getPrefixCls();
+
+      // ==================== Legacy =====================
+      const { onSelect, multiple } = restProps as TimePickerProps;
+      const hasLegacyOnSelect = onSelect && picker === 'time' && !multiple;
+
+      const onInternalCalendarChange: typeof onCalendarChange = (date, dateStr, info) => {
+        onCalendarChange?.(date, dateStr, info);
+
+        if (hasLegacyOnSelect) {
+          onSelect(date as any);
+        }
+      };
+
+      // =================== Warning =====================
+      if (process.env.NODE_ENV !== 'production') {
+        const warning = devUseWarning(displayName! || 'DatePicker');
+
+        warning(
           picker !== 'quarter',
-          displayName!,
+          'deprecated',
           `DatePicker.${displayName} is legacy usage. Please use DatePicker[picker='${picker}'] directly.`,
         );
+
+        warning.deprecated(!dropdownClassName, 'dropdownClassName', 'popupClassName');
+
+        warning.deprecated(!('bordered' in props), 'bordered', 'variant');
+
+        warning.deprecated(!hasLegacyOnSelect, 'onSelect', 'onCalendarChange');
       }
 
-      focus = () => {
-        if (this.pickerRef.current) {
-          this.pickerRef.current.focus();
-        }
-      };
+      // ===================== Icon =====================
+      const [mergedAllowClear, removeIcon] = useIcons(props, prefixCls);
 
-      blur = () => {
-        if (this.pickerRef.current) {
-          this.pickerRef.current.blur();
-        }
-      };
+      // ================== components ==================
+      const mergedComponents = useComponents(components);
 
-      renderPicker = (contextLocale: PickerLocale) => {
-        const locale = { ...contextLocale, ...this.props.locale };
-        const { getPrefixCls, direction, getPopupContainer } = this.context;
-        const {
-          prefixCls: customizePrefixCls,
-          getPopupContainer: customizeGetPopupContainer,
-          className,
-          size: customizeSize,
-          bordered = true,
-          placeholder,
-          ...restProps
-        } = this.props;
-        const { format, showTime } = this.props as any;
-        const prefixCls = getPrefixCls('picker', customizePrefixCls);
+      // ===================== Size =====================
+      const mergedSize = useSize((ctx) => customizeSize ?? compactSize ?? ctx);
 
-        const additionalProps = {
-          showToday: true,
-        };
+      // ===================== Disabled =====================
+      const disabled = React.useContext(DisabledContext);
+      const mergedDisabled = customDisabled ?? disabled;
 
-        let additionalOverrideProps: any = {};
-        if (picker) {
-          additionalOverrideProps.picker = picker;
-        }
-        const mergedPicker = picker || this.props.picker;
+      // ===================== FormItemInput =====================
+      const formItemContext = useContext(FormItemInputContext);
+      const { hasFeedback, status: contextStatus, feedbackIcon } = formItemContext;
 
-        additionalOverrideProps = {
-          ...additionalOverrideProps,
-          ...(showTime ? getTimeProps({ format, picker: mergedPicker, ...showTime }) : {}),
-          ...(mergedPicker === 'time'
-            ? getTimeProps({ format, ...this.props, picker: mergedPicker })
-            : {}),
-        };
-        const rootPrefixCls = getPrefixCls();
+      const suffixNode = (
+        <>
+          {mergedPicker === 'time' ? <ClockCircleOutlined /> : <CalendarOutlined />}
+          {hasFeedback && feedbackIcon}
+        </>
+      );
 
-        return (
-          <SizeContext.Consumer>
-            {size => {
-              const mergedSize = customizeSize || size;
+      const [contextLocale] = useLocale('DatePicker', enUS);
 
-              return (
-                <RCPicker<DateType>
-                  ref={this.pickerRef}
-                  placeholder={getPlaceholder(mergedPicker, locale, placeholder)}
-                  suffixIcon={
-                    mergedPicker === 'time' ? <ClockCircleOutlined /> : <CalendarOutlined />
-                  }
-                  clearIcon={<CloseCircleFilled />}
-                  prevIcon={<span className={`${prefixCls}-prev-icon`} />}
-                  nextIcon={<span className={`${prefixCls}-next-icon`} />}
-                  superPrevIcon={<span className={`${prefixCls}-super-prev-icon`} />}
-                  superNextIcon={<span className={`${prefixCls}-super-next-icon`} />}
-                  allowClear
-                  transitionName={`${rootPrefixCls}-slide-up`}
-                  {...additionalProps}
-                  {...restProps}
-                  {...additionalOverrideProps}
-                  locale={locale!.lang}
-                  className={classNames(
-                    {
-                      [`${prefixCls}-${mergedSize}`]: mergedSize,
-                      [`${prefixCls}-borderless`]: !bordered,
-                    },
-                    className,
-                  )}
-                  prefixCls={prefixCls}
-                  getPopupContainer={customizeGetPopupContainer || getPopupContainer}
-                  generateConfig={generateConfig}
-                  components={Components}
-                  direction={direction}
-                />
-              );
+      const locale = { ...contextLocale, ...props.locale! };
+      // ============================ zIndex ============================
+      const [zIndex] = useZIndex('DatePicker', props.popupStyle?.zIndex as number);
+
+      return wrapCSSVar(
+        <NoCompactStyle>
+          <RCPicker<DateType>
+            ref={innerRef}
+            placeholder={getPlaceholder(locale, mergedPicker, placeholder)}
+            suffixIcon={suffixNode}
+            dropdownAlign={transPlacement2DropdownAlign(direction, placement)}
+            prevIcon={<span className={`${prefixCls}-prev-icon`} />}
+            nextIcon={<span className={`${prefixCls}-next-icon`} />}
+            superPrevIcon={<span className={`${prefixCls}-super-prev-icon`} />}
+            superNextIcon={<span className={`${prefixCls}-super-next-icon`} />}
+            transitionName={`${rootPrefixCls}-slide-up`}
+            picker={picker}
+            onCalendarChange={onInternalCalendarChange}
+            {...additionalProps}
+            {...restProps}
+            locale={locale!.lang}
+            className={classNames(
+              {
+                [`${prefixCls}-${mergedSize}`]: mergedSize,
+                [`${prefixCls}-${variant}`]: enableVariantCls,
+              },
+              getStatusClassNames(
+                prefixCls,
+                getMergedStatus(contextStatus, customStatus),
+                hasFeedback,
+              ),
+              hashId,
+              compactItemClassnames,
+              consumerStyle?.className,
+              className,
+              cssVarCls,
+              rootCls,
+              rootClassName,
+            )}
+            style={{ ...consumerStyle?.style, ...style }}
+            prefixCls={prefixCls}
+            getPopupContainer={customizeGetPopupContainer || getPopupContainer}
+            generateConfig={generateConfig}
+            components={mergedComponents}
+            direction={direction}
+            disabled={mergedDisabled}
+            classNames={{
+              popup: classNames(
+                hashId,
+                cssVarCls,
+                rootCls,
+                rootClassName,
+                popupClassName || dropdownClassName,
+              ),
             }}
-          </SizeContext.Consumer>
-        );
-      };
+            styles={{
+              popup: {
+                ...props.popupStyle,
+                zIndex,
+              },
+            }}
+            allowClear={mergedAllowClear}
+            removeIcon={removeIcon}
+          />
+        </NoCompactStyle>,
+      );
+    });
 
-      render() {
-        return (
-          <LocaleReceiver componentName="DatePicker" defaultLocale={enUS}>
-            {this.renderPicker}
-          </LocaleReceiver>
-        );
-      }
-    }
-
-    if (displayName) {
+    if (process.env.NODE_ENV !== 'production' && displayName) {
       Picker.displayName = displayName;
     }
 
-    return Picker as PickerComponentClass<InnerPickerProps>;
+    return Picker as unknown as (<ValueType = DateType>(
+      props: PickerPropsWithMultiple<DateType, InnerPickerProps, ValueType>,
+    ) => React.ReactElement) & { displayName?: string };
   }
 
   const DatePicker = getPicker<DatePickerProps>();
-  const WeekPicker = getPicker<Omit<PickerDateProps<DateType>, 'picker'>>('week', 'WeekPicker');
-  const MonthPicker = getPicker<Omit<PickerDateProps<DateType>, 'picker'>>('month', 'MonthPicker');
-  const YearPicker = getPicker<Omit<PickerDateProps<DateType>, 'picker'>>('year', 'YearPicker');
-  const TimePicker = getPicker<Omit<PickerTimeProps<DateType>, 'picker'>>('time', 'TimePicker');
-  const QuarterPicker = getPicker<Omit<PickerTimeProps<DateType>, 'picker'>>(
-    'quarter',
-    'QuarterPicker',
-  );
+  const WeekPicker = getPicker<Omit<DatePickerProps, 'picker'>>('week', 'WeekPicker');
+  const MonthPicker = getPicker<Omit<DatePickerProps, 'picker'>>('month', 'MonthPicker');
+  const YearPicker = getPicker<Omit<DatePickerProps, 'picker'>>('year', 'YearPicker');
+  const QuarterPicker = getPicker<Omit<DatePickerProps, 'picker'>>('quarter', 'QuarterPicker');
+  const TimePicker = getPicker<Omit<TimePickerProps, 'picker'>>('time', 'TimePicker');
 
   return { DatePicker, WeekPicker, MonthPicker, YearPicker, TimePicker, QuarterPicker };
 }

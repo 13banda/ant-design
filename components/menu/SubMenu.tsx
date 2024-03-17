@@ -1,9 +1,12 @@
 import * as React from 'react';
-import { SubMenu as RcSubMenu, useFullPath } from 'rc-menu';
 import classNames from 'classnames';
+import { SubMenu as RcSubMenu, useFullPath } from 'rc-menu';
 import omit from 'rc-util/lib/omit';
+
+import { useZIndex } from '../_util/hooks/useZIndex';
+import { cloneElement } from '../_util/reactNode';
+import type { MenuContextProps, MenuTheme } from './MenuContext';
 import MenuContext from './MenuContext';
-import { isValidElement, cloneElement } from '../_util/reactNode';
 
 interface TitleEventEntity {
   key: string;
@@ -23,12 +26,13 @@ export interface SubMenuProps {
   popupOffset?: [number, number];
   popupClassName?: string;
   children?: React.ReactNode;
+  theme?: MenuTheme;
 }
 
-function SubMenu(props: SubMenuProps) {
-  const { popupClassName, icon, title } = props;
+const SubMenu: React.FC<SubMenuProps> = (props) => {
+  const { popupClassName, icon, title, theme: customTheme } = props;
   const context = React.useContext(MenuContext);
-  const { prefixCls, inlineCollapsed, antdMenuTheme } = context;
+  const { prefixCls, inlineCollapsed, theme: contextTheme } = context;
 
   const parentPath = useFullPath();
 
@@ -44,12 +48,12 @@ function SubMenu(props: SubMenuProps) {
   } else {
     // inline-collapsed.md demo 依赖 span 来隐藏文字,有 icon 属性，则内部包裹一个 span
     // ref: https://github.com/ant-design/ant-design/pull/23456
-    const titleIsSpan = isValidElement(title) && title.type === 'span';
+    const titleIsSpan = React.isValidElement(title) && title.type === 'span';
     titleNode = (
       <>
         {cloneElement(icon, {
           className: classNames(
-            isValidElement(icon) ? icon.props?.className : '',
+            React.isValidElement(icon) ? icon.props?.className : '',
             `${prefixCls}-item-icon`,
           ),
         })}
@@ -58,23 +62,30 @@ function SubMenu(props: SubMenuProps) {
     );
   }
 
-  const contextValue = React.useMemo(
-    () => ({
-      ...context,
-      firstLevel: false,
-    }),
+  const contextValue = React.useMemo<MenuContextProps>(
+    () => ({ ...context, firstLevel: false }),
     [context],
   );
+
+  // ============================ zIndex ============================
+  const [zIndex] = useZIndex('Menu');
 
   return (
     <MenuContext.Provider value={contextValue}>
       <RcSubMenu
         {...omit(props, ['icon'])}
         title={titleNode}
-        popupClassName={classNames(prefixCls, `${prefixCls}-${antdMenuTheme}`, popupClassName)}
+        popupClassName={classNames(
+          prefixCls,
+          popupClassName,
+          `${prefixCls}-${customTheme || contextTheme}`,
+        )}
+        popupStyle={{
+          zIndex,
+        }}
       />
     </MenuContext.Provider>
   );
-}
+};
 
 export default SubMenu;

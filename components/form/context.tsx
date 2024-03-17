@@ -1,12 +1,16 @@
+import type { PropsWithChildren, ReactNode } from 'react';
 import * as React from 'react';
-import omit from 'rc-util/lib/omit';
-import { Meta } from 'rc-field-form/lib/interface';
+import { createContext, useContext, useMemo } from 'react';
 import { FormProvider as RcFormProvider } from 'rc-field-form';
-import { FormProviderProps as RcFormProviderProps } from 'rc-field-form/lib/FormContext';
-import { ColProps } from '../grid/col';
-import { FormLabelAlign } from './interface';
-import { RequiredMark } from './Form';
-import { ValidateStatus } from './FormItem';
+import type { FormProviderProps as RcFormProviderProps } from 'rc-field-form/lib/FormContext';
+import type { Meta } from 'rc-field-form/lib/interface';
+import omit from 'rc-util/lib/omit';
+
+import type { ColProps } from '../grid/col';
+import type { FormInstance, RequiredMark } from './Form';
+import type { ValidateStatus, FeedbackIcons } from './FormItem';
+import type { FormLabelAlign } from './interface';
+import type { Variant } from './hooks/useVariants';
 
 /** Form Context. Set top form style and pass to Form Item usage. */
 export interface FormContextProps {
@@ -19,6 +23,8 @@ export interface FormContextProps {
   wrapperCol?: ColProps;
   requiredMark?: RequiredMark;
   itemRef: (name: (string | number)[]) => (node: React.ReactElement) => void;
+  form?: FormInstance;
+  feedbackIcons?: FeedbackIcons;
 }
 
 export const FormContext = React.createContext<FormContextProps>({
@@ -36,7 +42,7 @@ export interface FormProviderProps extends Omit<RcFormProviderProps, 'validateMe
   prefixCls?: string;
 }
 
-export const FormProvider: React.FC<FormProviderProps> = props => {
+export const FormProvider: React.FC<FormProviderProps> = (props) => {
   const providerProps = omit(props, ['prefixCls']);
   return <RcFormProvider {...providerProps} />;
 };
@@ -50,3 +56,48 @@ export interface FormItemPrefixContextProps {
 export const FormItemPrefixContext = React.createContext<FormItemPrefixContextProps>({
   prefixCls: '',
 });
+
+export interface FormItemStatusContextProps {
+  isFormItemInput?: boolean;
+  status?: ValidateStatus;
+  errors?: React.ReactNode[];
+  warnings?: React.ReactNode[];
+  hasFeedback?: boolean;
+  feedbackIcon?: ReactNode;
+}
+
+export const FormItemInputContext = React.createContext<FormItemStatusContextProps>({});
+
+if (process.env.NODE_ENV !== 'production') {
+  FormItemInputContext.displayName = 'FormItemInputContext';
+}
+
+export type NoFormStyleProps = PropsWithChildren<{
+  status?: boolean;
+  override?: boolean;
+}>;
+
+export const NoFormStyle: React.FC<NoFormStyleProps> = ({ children, status, override }) => {
+  const formItemInputContext = useContext(FormItemInputContext);
+
+  const newFormItemInputContext = useMemo(() => {
+    const newContext = { ...formItemInputContext };
+    if (override) {
+      delete newContext.isFormItemInput;
+    }
+    if (status) {
+      delete newContext.status;
+      delete newContext.hasFeedback;
+      delete newContext.feedbackIcon;
+    }
+    return newContext;
+  }, [status, override, formItemInputContext]);
+
+  return (
+    <FormItemInputContext.Provider value={newFormItemInputContext}>
+      {children}
+    </FormItemInputContext.Provider>
+  );
+};
+
+export const VariantContext = createContext<Variant | undefined>(undefined);

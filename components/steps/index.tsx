@@ -1,31 +1,20 @@
-import * as React from 'react';
-import omit from 'rc-util/lib/omit';
-import RcSteps from 'rc-steps';
-import type { ProgressDotRender } from 'rc-steps/lib/Steps';
 import CheckOutlined from '@ant-design/icons/CheckOutlined';
 import CloseOutlined from '@ant-design/icons/CloseOutlined';
 import classNames from 'classnames';
+import RcSteps from 'rc-steps';
+import type {
+  ProgressDotRender,
+  StepsProps as RcStepsProps,
+  StepIconRender,
+} from 'rc-steps/lib/Steps';
+import * as React from 'react';
 import { ConfigContext } from '../config-provider';
-import Progress from '../progress';
+import useSize from '../config-provider/hooks/useSize';
 import useBreakpoint from '../grid/hooks/useBreakpoint';
-
-export interface StepsProps {
-  type?: 'default' | 'navigation';
-  className?: string;
-  current?: number;
-  direction?: 'horizontal' | 'vertical';
-  iconPrefix?: string;
-  initial?: number;
-  labelPlacement?: 'horizontal' | 'vertical';
-  prefixCls?: string;
-  progressDot?: boolean | ProgressDotRender;
-  responsive?: boolean;
-  size?: 'default' | 'small';
-  status?: 'wait' | 'process' | 'finish' | 'error';
-  style?: React.CSSProperties;
-  percent?: number;
-  onChange?: (current: number) => void;
-}
+import Progress from '../progress';
+import Tooltip from '../tooltip';
+import useStyle from './style';
+import useLegacyItems from './useLegacyItems';
 
 export interface StepProps {
   className?: string;
@@ -39,80 +28,128 @@ export interface StepProps {
   style?: React.CSSProperties;
 }
 
-interface StepsType extends React.FC<StepsProps> {
-  Step: typeof RcSteps.Step;
+export interface StepsProps {
+  type?: 'default' | 'navigation' | 'inline';
+  className?: string;
+  rootClassName?: string;
+  current?: number;
+  direction?: 'horizontal' | 'vertical';
+  iconPrefix?: string;
+  initial?: number;
+  labelPlacement?: 'horizontal' | 'vertical';
+  prefixCls?: string;
+  progressDot?: boolean | ProgressDotRender;
+  responsive?: boolean;
+  size?: 'default' | 'small';
+  status?: 'wait' | 'process' | 'finish' | 'error';
+  style?: React.CSSProperties;
+  percent?: number;
+  onChange?: (current: number) => void;
+  children?: React.ReactNode;
+  items?: StepProps[];
 }
 
-const Steps: StepsType = props => {
-  const { percent, size, className, direction, responsive } = props;
-  const { xs } = useBreakpoint();
-  const { getPrefixCls, direction: rtlDirection } = React.useContext(ConfigContext);
+type CompoundedComponent = React.FC<StepsProps> & {
+  Step: typeof RcSteps.Step;
+};
 
-  const getDirection = React.useCallback(
+const Steps: CompoundedComponent = (props) => {
+  const {
+    percent,
+    size: customizeSize,
+    className,
+    rootClassName,
+    direction,
+    items,
+    responsive = true,
+    current = 0,
+    children,
+    style,
+    ...restProps
+  } = props;
+  const { xs } = useBreakpoint(responsive);
+  const { getPrefixCls, direction: rtlDirection, steps } = React.useContext(ConfigContext);
+
+  const realDirectionValue = React.useMemo<RcStepsProps['direction']>(
     () => (responsive && xs ? 'vertical' : direction),
     [xs, direction],
   );
 
+  const size = useSize(customizeSize);
+
   const prefixCls = getPrefixCls('steps', props.prefixCls);
+
+  const [wrapCSSVar, hashId, cssVarCls] = useStyle(prefixCls);
+
+  const isInline = props.type === 'inline';
   const iconPrefix = getPrefixCls('', props.iconPrefix);
+  const mergedItems = useLegacyItems(items, children);
+  const mergedPercent = isInline ? undefined : percent;
+
+  const mergedStyle: React.CSSProperties = { ...steps?.style, ...style };
+
   const stepsClassName = classNames(
+    steps?.className,
     {
       [`${prefixCls}-rtl`]: rtlDirection === 'rtl',
-      [`${prefixCls}-with-progress`]: percent !== undefined,
+      [`${prefixCls}-with-progress`]: mergedPercent !== undefined,
     },
     className,
+    rootClassName,
+    hashId,
+    cssVarCls,
   );
   const icons = {
     finish: <CheckOutlined className={`${prefixCls}-finish-icon`} />,
     error: <CloseOutlined className={`${prefixCls}-error-icon`} />,
   };
-  const stepIconRender = ({
-    node,
-    status,
-  }: {
-    node: React.ReactNode;
-    index: number;
-    status: string;
-    title: string | React.ReactNode;
-    description: string | React.ReactNode;
-  }) => {
-    if (status === 'process' && percent !== undefined) {
+
+  const stepIconRender: StepIconRender = ({ node, status }) => {
+    if (status === 'process' && mergedPercent !== undefined) {
       // currently it's hard-coded, since we can't easily read the actually width of icon
       const progressWidth = size === 'small' ? 32 : 40;
-      const iconWithProgress = (
+      // iconWithProgress
+      return (
         <div className={`${prefixCls}-progress-icon`}>
           <Progress
             type="circle"
-            percent={percent}
-            width={progressWidth}
+            percent={mergedPercent}
+            size={progressWidth}
             strokeWidth={4}
             format={() => null}
           />
           {node}
         </div>
       );
-      return iconWithProgress;
     }
     return node;
   };
-  return (
+
+  const itemRender = (item: StepProps, stepItem: React.ReactNode) =>
+    item.description ? <Tooltip title={item.description}>{stepItem}</Tooltip> : stepItem;
+
+  return wrapCSSVar(
     <RcSteps
       icons={icons}
-      {...omit(props, ['percent', 'responsive'])}
-      direction={getDirection()}
+      {...restProps}
+      style={mergedStyle}
+      current={current}
+      size={size}
+      items={mergedItems}
+      itemRender={isInline ? itemRender : undefined}
       stepIcon={stepIconRender}
+      direction={realDirectionValue}
       prefixCls={prefixCls}
       iconPrefix={iconPrefix}
       className={stepsClassName}
-    />
+    />,
   );
 };
 
 Steps.Step = RcSteps.Step;
 
-Steps.defaultProps = {
-  current: 0,
-  responsive: true,
-};
+if (process.env.NODE_ENV !== 'production') {
+  Steps.displayName = 'Steps';
+}
 
 export default Steps;

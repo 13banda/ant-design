@@ -1,149 +1,69 @@
 import * as React from 'react';
-import RcMenu, { ItemGroup, MenuProps as RcMenuProps } from 'rc-menu';
-import classNames from 'classnames';
-import omit from 'rc-util/lib/omit';
-import EllipsisOutlined from '@ant-design/icons/EllipsisOutlined';
-import memoize from 'memoize-one';
-import SubMenu, { SubMenuProps } from './SubMenu';
-import Item, { MenuItemProps } from './MenuItem';
-import { ConfigConsumer, ConfigConsumerProps } from '../config-provider';
-import devWarning from '../_util/devWarning';
-import { SiderContext, SiderContextProps } from '../layout/Sider';
-import collapseMotion from '../_util/motion';
-import { cloneElement } from '../_util/reactNode';
-import MenuContext, { MenuTheme } from './MenuContext';
+import { forwardRef, useImperativeHandle, useRef } from 'react';
+import type { MenuRef as RcMenuRef } from 'rc-menu';
+import { ItemGroup } from 'rc-menu';
+
+import { SiderContext } from '../layout/Sider';
+import type { ItemType, MenuItemType } from './hooks/useItems';
+import type { MenuProps } from './menu';
+import InternalMenu from './menu';
+import type { MenuTheme } from './MenuContext';
 import MenuDivider from './MenuDivider';
+import Item, { type MenuItemProps } from './MenuItem';
+import SubMenu, { type SubMenuProps } from './SubMenu';
 
-export { MenuDividerProps } from './MenuDivider';
+export type { MenuItemGroupProps } from 'rc-menu';
+export type { MenuDividerProps } from './MenuDivider';
+export type { MenuItemProps, MenuProps, MenuTheme, SubMenuProps };
 
-export { MenuItemGroupProps } from 'rc-menu';
+export type MenuRef = {
+  menu: RcMenuRef | null;
+  focus: (options?: FocusOptions) => void;
+};
 
-export type MenuMode = 'vertical' | 'vertical-left' | 'vertical-right' | 'horizontal' | 'inline';
+type ComponentProps = MenuProps & React.RefAttributes<MenuRef>;
 
-export interface MenuProps extends RcMenuProps {
-  theme?: MenuTheme;
-  inlineIndent?: number;
+type GenericItemType<T = unknown> = T extends infer U extends MenuItemType
+  ? unknown extends U
+    ? ItemType
+    : ItemType<U>
+  : ItemType;
 
-  // >>>>> Private
-  /**
-   * @private Internal Usage. Not promise crash if used in production. Connect with chenshuai2144
-   *   for removing.
-   */
-  _internalDisableMenuItemTitleTooltip?: boolean;
+type GenericComponentProps<T = unknown> = Omit<ComponentProps, 'items'> & {
+  items?: GenericItemType<T>[];
+};
+
+type CompoundedComponent = React.ForwardRefExoticComponent<GenericComponentProps> & {
+  Item: typeof Item;
+  SubMenu: typeof SubMenu;
+  Divider: typeof MenuDivider;
+  ItemGroup: typeof ItemGroup;
+};
+
+interface GenericComponent extends Omit<CompoundedComponent, ''> {
+  <T extends MenuItemType>(props: GenericComponentProps<T>): ReturnType<CompoundedComponent>;
 }
 
-type InternalMenuProps = MenuProps &
-  SiderContextProps & {
-    collapsedWidth?: string | number;
-  };
+const Menu = forwardRef<MenuRef, MenuProps>((props, ref) => {
+  const menuRef = useRef<RcMenuRef>(null);
+  const context = React.useContext(SiderContext);
 
-class InternalMenu extends React.Component<InternalMenuProps> {
-  static defaultProps: Partial<MenuProps> = {
-    theme: 'light', // or dark
-  };
+  useImperativeHandle(ref, () => ({
+    menu: menuRef.current,
+    focus: (options) => {
+      menuRef.current?.focus(options);
+    },
+  }));
+  return <InternalMenu ref={menuRef} {...props} {...context} />;
+}) as GenericComponent;
 
-  constructor(props: InternalMenuProps) {
-    super(props);
+Menu.Item = Item;
+Menu.SubMenu = SubMenu;
+Menu.Divider = MenuDivider;
+Menu.ItemGroup = ItemGroup;
 
-    devWarning(
-      !('inlineCollapsed' in props && props.mode !== 'inline'),
-      'Menu',
-      '`inlineCollapsed` should only be used when `mode` is inline.',
-    );
-
-    devWarning(
-      !(props.siderCollapsed !== undefined && 'inlineCollapsed' in props),
-      'Menu',
-      '`inlineCollapsed` not control Menu under Sider. Should set `collapsed` on Sider instead.',
-    );
-  }
-
-  getInlineCollapsed() {
-    const { inlineCollapsed, siderCollapsed } = this.props;
-    if (siderCollapsed !== undefined) {
-      return siderCollapsed;
-    }
-    return inlineCollapsed;
-  }
-
-  renderMenu = ({ getPopupContainer, getPrefixCls, direction }: ConfigConsumerProps) => {
-    const rootPrefixCls = getPrefixCls();
-
-    const {
-      prefixCls: customizePrefixCls,
-      className,
-      theme,
-      expandIcon,
-      _internalDisableMenuItemTitleTooltip,
-      ...restProps
-    } = this.props;
-
-    const passedProps = omit(restProps, ['siderCollapsed', 'collapsedWidth']);
-    const inlineCollapsed = this.getInlineCollapsed();
-
-    const defaultMotions = {
-      horizontal: { motionName: `${rootPrefixCls}-slide-up` },
-      inline: collapseMotion,
-      other: { motionName: `${rootPrefixCls}-zoom-big` },
-    };
-
-    const prefixCls = getPrefixCls('menu', customizePrefixCls);
-    const menuClassName = classNames(`${prefixCls}-${theme}`, className);
-
-    // TODO: refactor menu with function component
-    const contextValue = memoize((cls, collapsed, the, dir, disableMenuItemTitleTooltip) => ({
-      prefixCls: cls,
-      inlineCollapsed: collapsed || false,
-      antdMenuTheme: the,
-      direction: dir,
-      firstLevel: true,
-      disableMenuItemTitleTooltip,
-    }))(prefixCls, inlineCollapsed, theme, direction, _internalDisableMenuItemTitleTooltip);
-
-    return (
-      <MenuContext.Provider value={contextValue}>
-        <RcMenu
-          getPopupContainer={getPopupContainer}
-          overflowedIndicator={<EllipsisOutlined />}
-          overflowedIndicatorPopupClassName={`${prefixCls}-${theme}`}
-          {...passedProps}
-          inlineCollapsed={inlineCollapsed}
-          className={menuClassName}
-          prefixCls={prefixCls}
-          direction={direction}
-          defaultMotions={defaultMotions}
-          expandIcon={cloneElement(expandIcon, {
-            className: `${prefixCls}-submenu-expand-icon`,
-          })}
-        />
-      </MenuContext.Provider>
-    );
-  };
-
-  render() {
-    return <ConfigConsumer>{this.renderMenu}</ConfigConsumer>;
-  }
+if (process.env.NODE_ENV !== 'production') {
+  Menu.displayName = 'Menu';
 }
-
-// We should keep this as ref-able
-class Menu extends React.Component<MenuProps, {}> {
-  static Divider = MenuDivider;
-
-  static Item = Item;
-
-  static SubMenu = SubMenu;
-
-  static ItemGroup = ItemGroup;
-
-  render() {
-    return (
-      <SiderContext.Consumer>
-        {(context: SiderContextProps) => <InternalMenu {...this.props} {...context} />}
-      </SiderContext.Consumer>
-    );
-  }
-}
-
-export { MenuTheme, SubMenuProps, MenuItemProps };
 
 export default Menu;

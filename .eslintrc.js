@@ -6,7 +6,7 @@ module.exports = {
     'plugin:jest/recommended',
     'plugin:react/recommended',
     'plugin:import/typescript',
-    'plugin:markdown/recommended',
+    'plugin:markdown/recommended-legacy',
   ],
   env: {
     browser: true,
@@ -17,12 +17,24 @@ module.exports = {
   },
   settings: {
     react: {
-      version: '16.9',
+      version: 'detect',
     },
     polyfills: ['Promise', 'URL'],
+    'import/resolver': {
+      typescript: {},
+    },
   },
   parser: '@typescript-eslint/parser',
-  plugins: ['react', 'babel', 'jest', '@typescript-eslint', 'react-hooks', 'unicorn', 'markdown'],
+  plugins: [
+    'react',
+    '@babel',
+    'jest',
+    '@typescript-eslint',
+    'react-hooks',
+    'unicorn',
+    'markdown',
+    'lodash',
+  ],
   // https://github.com/typescript-eslint/typescript-eslint/issues/46#issuecomment-470486034
   overrides: [
     {
@@ -31,6 +43,7 @@ module.exports = {
         '@typescript-eslint/no-unused-vars': [2, { args: 'none' }],
         'no-unused-expressions': 'off',
         '@typescript-eslint/no-unused-expressions': 2,
+        '@typescript-eslint/consistent-type-imports': [2, { disallowTypeAnnotations: false }],
       },
     },
     {
@@ -63,6 +76,11 @@ module.exports = {
       },
       rules: {
         indent: 0,
+        '@babel/new-cap': 0,
+        '@babel/no-invalid-this': 0,
+        '@babel/no-unused-expressions': 2,
+        '@babel/object-curly-spacing': 0,
+        '@babel/semi': 2,
         'default-case': 0,
         'eol-last': 0,
         'no-console': 0,
@@ -80,6 +98,47 @@ module.exports = {
         'import/no-extraneous-dependencies': 0,
         'react/jsx-no-constructed-context-values': 0,
         'react/no-unstable-nested-components': 0,
+      },
+    },
+    {
+      files: ['components/**/demo/*.tsx'],
+      rules: {
+        'import/no-extraneous-dependencies': 0,
+        'no-console': 0,
+        'compat/compat': 0,
+        'react/no-unstable-nested-components': 0,
+        'jsx-a11y/control-has-associated-label': 0,
+        'class-methods-use-this': 0,
+        'react/no-access-state-in-setstate': 0,
+      },
+    },
+    {
+      files: ['.dumi/**/*.ts', '.dumi/**/*.tsx', '.dumi/**/*.js', '.dumi/**/*.jsx'],
+      rules: {
+        'import/no-extraneous-dependencies': 0,
+        'no-console': 0,
+        'compat/compat': 0,
+        'react/no-unstable-nested-components': 0,
+        'jsx-a11y/control-has-associated-label': 0,
+        'class-methods-use-this': 0,
+        'react/no-access-state-in-setstate': 0,
+        'react/no-unknown-property': ['error', { ignore: ['css'] }],
+        'react/no-array-index-key': 0,
+        'react/button-has-type': 0,
+        'react/no-danger': 0,
+      },
+    },
+    {
+      files: ['**/*.json'],
+      rules: {
+        'no-unused-expressions': 0,
+        'comma-dangle': 0,
+      },
+    },
+    {
+      files: ['**/*.test.ts', '**/*.test.tsx', '**/*.spec.ts', '**/*.spec.tsx'],
+      rules: {
+        'compat/compat': 0,
       },
     },
   ],
@@ -105,7 +164,8 @@ module.exports = {
     'react/function-component-definition': 0,
     'react/no-unused-class-component-methods': 0,
     'import/extensions': 0,
-    'import/no-cycle': 0,
+    'import/no-cycle': 2,
+    'lodash/import-scope': 2,
     'import/no-extraneous-dependencies': [
       'error',
       {
@@ -147,11 +207,12 @@ module.exports = {
     'jest/no-done-callback': 0,
     'jest/valid-title': 0,
     'jest/no-conditional-expect': 0,
+    'jest/no-standalone-expect': 0,
 
     'unicorn/better-regex': 2,
     'unicorn/prefer-string-trim-start-end': 2,
     'unicorn/expiring-todo-comments': 2,
-    'unicorn/no-abusive-eslint-disable': 2,
+    'unicorn/no-abusive-eslint-disable': 0,
 
     // https://github.com/typescript-eslint/typescript-eslint/issues/2540#issuecomment-692866111
     'no-use-before-define': 0,
@@ -160,6 +221,7 @@ module.exports = {
     '@typescript-eslint/no-shadow': [2, { ignoreTypeValueShadow: true }],
     // https://github.com/typescript-eslint/typescript-eslint/issues/2528#issuecomment-689369395
     'no-undef': 0,
+    'import/order': 0,
   },
   globals: {
     gtag: true,

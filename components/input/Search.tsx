@@ -1,12 +1,15 @@
 import * as React from 'react';
+import SearchOutlined from '@ant-design/icons/SearchOutlined';
 import classNames from 'classnames';
 import { composeRef } from 'rc-util/lib/ref';
-import SearchOutlined from '@ant-design/icons/SearchOutlined';
-import Input, { InputProps } from './Input';
-import Button from '../button';
-import SizeContext from '../config-provider/SizeContext';
-import { ConfigContext } from '../config-provider';
+
 import { cloneElement } from '../_util/reactNode';
+import Button from '../button';
+import { ConfigContext } from '../config-provider';
+import useSize from '../config-provider/hooks/useSize';
+import { useCompactItemContext } from '../space/Compact';
+import type { InputProps, InputRef } from './Input';
+import Input from './Input';
 
 export interface SearchProps extends InputProps {
   inputPrefixCls?: string;
@@ -16,12 +19,15 @@ export interface SearchProps extends InputProps {
       | React.ChangeEvent<HTMLInputElement>
       | React.MouseEvent<HTMLElement>
       | React.KeyboardEvent<HTMLInputElement>,
+    info?: {
+      source?: 'clear' | 'input';
+    },
   ) => void;
   enterButton?: React.ReactNode;
   loading?: boolean;
 }
 
-const Search = React.forwardRef<Input, SearchProps>((props, ref) => {
+const Search = React.forwardRef<InputRef, SearchProps>((props, ref) => {
   const {
     prefixCls: customizePrefixCls,
     inputPrefixCls: customizeInputPrefixCls,
@@ -34,26 +40,35 @@ const Search = React.forwardRef<Input, SearchProps>((props, ref) => {
     disabled,
     onSearch: customOnSearch,
     onChange: customOnChange,
+    onCompositionStart,
+    onCompositionEnd,
     ...restProps
   } = props;
 
   const { getPrefixCls, direction } = React.useContext(ConfigContext);
-  const contextSize = React.useContext(SizeContext);
 
-  const size = customizeSize || contextSize;
+  const composedRef = React.useRef<boolean>(false);
 
-  const inputRef = React.useRef<Input>(null);
+  const prefixCls = getPrefixCls('input-search', customizePrefixCls);
+  const inputPrefixCls = getPrefixCls('input', customizeInputPrefixCls);
+  const { compactSize } = useCompactItemContext(prefixCls, direction);
+
+  const size = useSize((ctx) => customizeSize ?? compactSize ?? ctx);
+
+  const inputRef = React.useRef<InputRef>(null);
 
   const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e && e.target && e.type === 'click' && customOnSearch) {
-      customOnSearch((e as React.ChangeEvent<HTMLInputElement>).target.value, e);
+      customOnSearch((e as React.ChangeEvent<HTMLInputElement>).target.value, e, {
+        source: 'clear',
+      });
     }
     if (customOnChange) {
       customOnChange(e);
     }
   };
 
-  const onMouseDown: React.MouseEventHandler<HTMLElement> = e => {
+  const onMouseDown: React.MouseEventHandler<HTMLElement> = (e) => {
     if (document.activeElement === inputRef.current?.input) {
       e.preventDefault();
     }
@@ -61,12 +76,18 @@ const Search = React.forwardRef<Input, SearchProps>((props, ref) => {
 
   const onSearch = (e: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLInputElement>) => {
     if (customOnSearch) {
-      customOnSearch(inputRef.current?.input.value!, e);
+      customOnSearch(inputRef.current?.input?.value!, e, {
+        source: 'input',
+      });
     }
   };
 
-  const prefixCls = getPrefixCls('input-search', customizePrefixCls);
-  const inputPrefixCls = getPrefixCls('input', customizeInputPrefixCls);
+  const onPressEnter = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (composedRef.current || loading) {
+      return;
+    }
+    onSearch(e);
+  };
 
   const searchIcon = typeof enterButton === 'boolean' ? <SearchOutlined /> : null;
   const btnClassName = `${prefixCls}-button`;
@@ -127,12 +148,24 @@ const Search = React.forwardRef<Input, SearchProps>((props, ref) => {
     className,
   );
 
+  const handleOnCompositionStart: React.CompositionEventHandler<HTMLInputElement> = (e) => {
+    composedRef.current = true;
+    onCompositionStart?.(e);
+  };
+
+  const handleOnCompositionEnd: React.CompositionEventHandler<HTMLInputElement> = (e) => {
+    composedRef.current = false;
+    onCompositionEnd?.(e);
+  };
+
   return (
     <Input
-      ref={composeRef<Input>(inputRef, ref)}
-      onPressEnter={onSearch}
+      ref={composeRef<InputRef>(inputRef, ref)}
+      onPressEnter={onPressEnter}
       {...restProps}
       size={size}
+      onCompositionStart={handleOnCompositionStart}
+      onCompositionEnd={handleOnCompositionEnd}
       prefixCls={inputPrefixCls}
       addonAfter={button}
       suffix={suffix}
@@ -143,6 +176,8 @@ const Search = React.forwardRef<Input, SearchProps>((props, ref) => {
   );
 });
 
-Search.displayName = 'Search';
+if (process.env.NODE_ENV !== 'production') {
+  Search.displayName = 'Search';
+}
 
 export default Search;

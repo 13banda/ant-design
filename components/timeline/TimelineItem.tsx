@@ -1,19 +1,24 @@
-import * as React from 'react';
 import classNames from 'classnames';
+import * as React from 'react';
+import type { LiteralUnion } from '../_util/type';
 import { ConfigContext } from '../config-provider';
 
+type Color = 'blue' | 'red' | 'green' | 'gray';
+
 export interface TimelineItemProps {
+  key?: React.Key;
   prefixCls?: string;
   className?: string;
-  color?: string;
+  color?: LiteralUnion<Color>;
   dot?: React.ReactNode;
   pending?: boolean;
   position?: string;
   style?: React.CSSProperties;
   label?: React.ReactNode;
+  children?: React.ReactNode;
 }
 
-// for compatibililty
+// for compatibility
 // https://github.com/ant-design/ant-design/pull/26832
 export interface TimeLineItemProps extends TimelineItemProps {
   __deprecated_do_not_use_it__?: any; // eslint-disable-line camelcase
@@ -34,20 +39,19 @@ const TimelineItem: React.FC<TimelineItemProps> = ({
 
   const prefixCls = getPrefixCls('timeline', customizePrefixCls);
   const itemClassName = classNames(
+    `${prefixCls}-item`,
     {
-      [`${prefixCls}-item`]: true,
       [`${prefixCls}-item-pending`]: pending,
     },
     className,
   );
 
-  const dotClassName = classNames({
-    [`${prefixCls}-item-head`]: true,
-    [`${prefixCls}-item-head-custom`]: !!dot,
-    [`${prefixCls}-item-head-${color}`]: true,
-  });
-
   const customColor = /blue|red|green|gray/.test(color || '') ? undefined : color;
+
+  const dotClassName = classNames(`${prefixCls}-item-head`, {
+    [`${prefixCls}-item-head-custom`]: !!dot,
+    [`${prefixCls}-item-head-${color}`]: !customColor,
+  });
 
   return (
     <li {...restProps} className={itemClassName}>

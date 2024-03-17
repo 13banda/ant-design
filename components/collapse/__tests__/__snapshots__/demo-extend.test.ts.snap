@@ -1,20 +1,23 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`renders ./components/collapse/demo/accordion.md extend context correctly 1`] = `
+exports[`renders components/collapse/demo/accordion.tsx extend context correctly 1`] = `
 <div
-  class="ant-collapse ant-collapse-icon-position-left"
+  class="ant-collapse ant-collapse-icon-position-start"
   role="tablist"
 >
   <div
     class="ant-collapse-item"
   >
     <div
+      aria-disabled="false"
       aria-expanded="false"
       class="ant-collapse-header"
       role="tab"
       tabindex="0"
     >
-      <div>
+      <div
+        class="ant-collapse-expand-icon"
+      >
         <span
           aria-label="right"
           class="anticon anticon-right ant-collapse-arrow"
@@ -35,19 +38,26 @@ exports[`renders ./components/collapse/demo/accordion.md extend context correctl
           </svg>
         </span>
       </div>
-      This is panel header 1
+      <span
+        class="ant-collapse-header-text"
+      >
+        This is panel header 1
+      </span>
     </div>
   </div>
   <div
     class="ant-collapse-item"
   >
     <div
+      aria-disabled="false"
       aria-expanded="false"
       class="ant-collapse-header"
       role="tab"
       tabindex="0"
     >
-      <div>
+      <div
+        class="ant-collapse-expand-icon"
+      >
         <span
           aria-label="right"
           class="anticon anticon-right ant-collapse-arrow"
@@ -68,19 +78,26 @@ exports[`renders ./components/collapse/demo/accordion.md extend context correctl
           </svg>
         </span>
       </div>
-      This is panel header 2
+      <span
+        class="ant-collapse-header-text"
+      >
+        This is panel header 2
+      </span>
     </div>
   </div>
   <div
     class="ant-collapse-item"
   >
     <div
+      aria-disabled="false"
       aria-expanded="false"
       class="ant-collapse-header"
       role="tab"
       tabindex="0"
     >
-      <div>
+      <div
+        class="ant-collapse-expand-icon"
+      >
         <span
           aria-label="right"
           class="anticon anticon-right ant-collapse-arrow"
@@ -101,26 +118,35 @@ exports[`renders ./components/collapse/demo/accordion.md extend context correctl
           </svg>
         </span>
       </div>
-      This is panel header 3
+      <span
+        class="ant-collapse-header-text"
+      >
+        This is panel header 3
+      </span>
     </div>
   </div>
 </div>
 `;
 
-exports[`renders ./components/collapse/demo/basic.md extend context correctly 1`] = `
+exports[`renders components/collapse/demo/accordion.tsx extend context correctly 2`] = `[]`;
+
+exports[`renders components/collapse/demo/basic.tsx extend context correctly 1`] = `
 <div
-  class="ant-collapse ant-collapse-icon-position-left"
+  class="ant-collapse ant-collapse-icon-position-start"
 >
   <div
     class="ant-collapse-item ant-collapse-item-active"
   >
     <div
+      aria-disabled="false"
       aria-expanded="true"
       class="ant-collapse-header"
       role="button"
       tabindex="0"
     >
-      <div>
+      <div
+        class="ant-collapse-expand-icon"
+      >
         <span
           aria-label="right"
           class="anticon anticon-right ant-collapse-arrow"
@@ -132,7 +158,7 @@ exports[`renders ./components/collapse/demo/basic.md extend context correctly 1`
             fill="currentColor"
             focusable="false"
             height="1em"
-            style="-ms-transform:rotate(90deg);transform:rotate(90deg)"
+            style="transform: rotate(90deg);"
             viewBox="64 64 896 896"
             width="1em"
           >
@@ -142,7 +168,11 @@ exports[`renders ./components/collapse/demo/basic.md extend context correctly 1`
           </svg>
         </span>
       </div>
-      This is panel header 1
+      <span
+        class="ant-collapse-header-text"
+      >
+        This is panel header 1
+      </span>
     </div>
     <div
       class="ant-collapse-content ant-collapse-content-active"
@@ -151,11 +181,9 @@ exports[`renders ./components/collapse/demo/basic.md extend context correctly 1`
         class="ant-collapse-content-box"
       >
         <p>
-          
   A dog is a type of domesticated animal.
   Known for its loyalty and faithfulness,
   it can be found as a welcome guest in many households across the world.
-
         </p>
       </div>
     </div>
@@ -164,12 +192,15 @@ exports[`renders ./components/collapse/demo/basic.md extend context correctly 1`
     class="ant-collapse-item"
   >
     <div
+      aria-disabled="false"
       aria-expanded="false"
       class="ant-collapse-header"
       role="button"
       tabindex="0"
     >
-      <div>
+      <div
+        class="ant-collapse-expand-icon"
+      >
         <span
           aria-label="right"
           class="anticon anticon-right ant-collapse-arrow"
@@ -190,19 +221,26 @@ exports[`renders ./components/collapse/demo/basic.md extend context correctly 1`
           </svg>
         </span>
       </div>
-      This is panel header 2
+      <span
+        class="ant-collapse-header-text"
+      >
+        This is panel header 2
+      </span>
     </div>
   </div>
   <div
     class="ant-collapse-item"
   >
     <div
+      aria-disabled="false"
       aria-expanded="false"
       class="ant-collapse-header"
       role="button"
       tabindex="0"
     >
-      <div>
+      <div
+        class="ant-collapse-expand-icon"
+      >
         <span
           aria-label="right"
           class="anticon anticon-right ant-collapse-arrow"
@@ -223,26 +261,35 @@ exports[`renders ./components/collapse/demo/basic.md extend context correctly 1`
           </svg>
         </span>
       </div>
-      This is panel header 3
+      <span
+        class="ant-collapse-header-text"
+      >
+        This is panel header 3
+      </span>
     </div>
   </div>
 </div>
 `;
 
-exports[`renders ./components/collapse/demo/borderless.md extend context correctly 1`] = `
+exports[`renders components/collapse/demo/basic.tsx extend context correctly 2`] = `[]`;
+
+exports[`renders components/collapse/demo/borderless.tsx extend context correctly 1`] = `
 <div
-  class="ant-collapse ant-collapse-borderless ant-collapse-icon-position-left"
+  class="ant-collapse ant-collapse-icon-position-start ant-collapse-borderless"
 >
   <div
     class="ant-collapse-item ant-collapse-item-active"
   >
     <div
+      aria-disabled="false"
       aria-expanded="true"
       class="ant-collapse-header"
       role="button"
       tabindex="0"
     >
-      <div>
+      <div
+        class="ant-collapse-expand-icon"
+      >
         <span
           aria-label="right"
           class="anticon anticon-right ant-collapse-arrow"
@@ -254,7 +301,7 @@ exports[`renders ./components/collapse/demo/borderless.md extend context correct
             fill="currentColor"
             focusable="false"
             height="1em"
-            style="-ms-transform:rotate(90deg);transform:rotate(90deg)"
+            style="transform: rotate(90deg);"
             viewBox="64 64 896 896"
             width="1em"
           >
@@ -264,7 +311,11 @@ exports[`renders ./components/collapse/demo/borderless.md extend context correct
           </svg>
         </span>
       </div>
-      This is panel header 1
+      <span
+        class="ant-collapse-header-text"
+      >
+        This is panel header 1
+      </span>
     </div>
     <div
       class="ant-collapse-content ant-collapse-content-active"
@@ -273,7 +324,7 @@ exports[`renders ./components/collapse/demo/borderless.md extend context correct
         class="ant-collapse-content-box"
       >
         <p
-          style="padding-left:24px"
+          style="padding-left: 24px;"
         >
           A dog is a type of domesticated animal. Known for its loyalty and faithfulness, it can be found as a welcome guest in many households across the world.
         </p>
@@ -284,12 +335,15 @@ exports[`renders ./components/collapse/demo/borderless.md extend context correct
     class="ant-collapse-item"
   >
     <div
+      aria-disabled="false"
       aria-expanded="false"
       class="ant-collapse-header"
       role="button"
       tabindex="0"
     >
-      <div>
+      <div
+        class="ant-collapse-expand-icon"
+      >
         <span
           aria-label="right"
           class="anticon anticon-right ant-collapse-arrow"
@@ -310,19 +364,26 @@ exports[`renders ./components/collapse/demo/borderless.md extend context correct
           </svg>
         </span>
       </div>
-      This is panel header 2
+      <span
+        class="ant-collapse-header-text"
+      >
+        This is panel header 2
+      </span>
     </div>
   </div>
   <div
     class="ant-collapse-item"
   >
     <div
+      aria-disabled="false"
       aria-expanded="false"
       class="ant-collapse-header"
       role="button"
       tabindex="0"
     >
-      <div>
+      <div
+        class="ant-collapse-expand-icon"
+      >
         <span
           aria-label="right"
           class="anticon anticon-right ant-collapse-arrow"
@@ -343,33 +404,39 @@ exports[`renders ./components/collapse/demo/borderless.md extend context correct
           </svg>
         </span>
       </div>
-      This is panel header 3
+      <span
+        class="ant-collapse-header-text"
+      >
+        This is panel header 3
+      </span>
     </div>
   </div>
 </div>
 `;
 
-exports[`renders ./components/collapse/demo/collapsible.md extend context correctly 1`] = `
+exports[`renders components/collapse/demo/borderless.tsx extend context correctly 2`] = `[]`;
+
+exports[`renders components/collapse/demo/collapsible.tsx extend context correctly 1`] = `
 <div
-  class="ant-space ant-space-vertical"
+  class="ant-space ant-space-vertical ant-space-gap-row-small ant-space-gap-col-small"
 >
   <div
     class="ant-space-item"
-    style="margin-bottom:8px"
   >
     <div
-      class="ant-collapse ant-collapse-icon-position-left"
+      class="ant-collapse ant-collapse-icon-position-start"
     >
       <div
         class="ant-collapse-item ant-collapse-item-active"
       >
         <div
+          aria-disabled="false"
           aria-expanded="true"
           class="ant-collapse-header ant-collapse-header-collapsible-only"
-          role="button"
-          tabindex="0"
         >
-          <div>
+          <div
+            class="ant-collapse-expand-icon"
+          >
             <span
               aria-label="right"
               class="anticon anticon-right ant-collapse-arrow"
@@ -381,7 +448,7 @@ exports[`renders ./components/collapse/demo/collapsible.md extend context correc
                 fill="currentColor"
                 focusable="false"
                 height="1em"
-                style="-ms-transform:rotate(90deg);transform:rotate(90deg)"
+                style="transform: rotate(90deg);"
                 viewBox="64 64 896 896"
                 width="1em"
               >
@@ -404,11 +471,9 @@ exports[`renders ./components/collapse/demo/collapsible.md extend context correc
             class="ant-collapse-content-box"
           >
             <p>
-              
   A dog is a type of domesticated animal.
   Known for its loyalty and faithfulness,
   it can be found as a welcome guest in many households across the world.
-
             </p>
           </div>
         </div>
@@ -419,18 +484,81 @@ exports[`renders ./components/collapse/demo/collapsible.md extend context correc
     class="ant-space-item"
   >
     <div
-      class="ant-collapse ant-collapse-icon-position-left"
+      class="ant-collapse ant-collapse-icon-position-start"
+    >
+      <div
+        class="ant-collapse-item ant-collapse-item-active"
+      >
+        <div
+          aria-disabled="false"
+          aria-expanded="true"
+          class="ant-collapse-header ant-collapse-icon-collapsible-only"
+        >
+          <div
+            class="ant-collapse-expand-icon"
+          >
+            <span
+              aria-label="right"
+              class="anticon anticon-right ant-collapse-arrow"
+              role="img"
+            >
+              <svg
+                aria-hidden="true"
+                data-icon="right"
+                fill="currentColor"
+                focusable="false"
+                height="1em"
+                style="transform: rotate(90deg);"
+                viewBox="64 64 896 896"
+                width="1em"
+              >
+                <path
+                  d="M765.7 486.8L314.9 134.7A7.97 7.97 0 00302 141v77.3c0 4.9 2.3 9.6 6.1 12.6l360 281.1-360 281.1c-3.9 3-6.1 7.7-6.1 12.6V883c0 6.7 7.7 10.4 12.9 6.3l450.8-352.1a31.96 31.96 0 000-50.4z"
+                />
+              </svg>
+            </span>
+          </div>
+          <span
+            class="ant-collapse-header-text"
+          >
+            This panel can only be collapsed by clicking icon
+          </span>
+        </div>
+        <div
+          class="ant-collapse-content ant-collapse-content-active"
+        >
+          <div
+            class="ant-collapse-content-box"
+          >
+            <p>
+  A dog is a type of domesticated animal.
+  Known for its loyalty and faithfulness,
+  it can be found as a welcome guest in many households across the world.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div
+    class="ant-space-item"
+  >
+    <div
+      class="ant-collapse ant-collapse-icon-position-start"
     >
       <div
         class="ant-collapse-item ant-collapse-item-disabled"
       >
         <div
+          aria-disabled="true"
           aria-expanded="false"
           class="ant-collapse-header"
           role="button"
           tabindex="-1"
         >
-          <div>
+          <div
+            class="ant-collapse-expand-icon"
+          >
             <span
               aria-label="right"
               class="anticon anticon-right ant-collapse-arrow"
@@ -451,7 +579,11 @@ exports[`renders ./components/collapse/demo/collapsible.md extend context correc
               </svg>
             </span>
           </div>
-          This panel can't be collapsed
+          <span
+            class="ant-collapse-header-text"
+          >
+            This panel can't be collapsed
+          </span>
         </div>
       </div>
     </div>
@@ -459,20 +591,156 @@ exports[`renders ./components/collapse/demo/collapsible.md extend context correc
 </div>
 `;
 
-exports[`renders ./components/collapse/demo/custom.md extend context correctly 1`] = `
+exports[`renders components/collapse/demo/collapsible.tsx extend context correctly 2`] = `[]`;
+
+exports[`renders components/collapse/demo/component-token.tsx extend context correctly 1`] = `
 <div
-  class="ant-collapse ant-collapse-borderless ant-collapse-icon-position-left site-collapse-custom-collapse"
+  class="ant-collapse ant-collapse-icon-position-start"
 >
   <div
-    class="ant-collapse-item ant-collapse-item-active site-collapse-custom-panel"
+    class="ant-collapse-item"
   >
     <div
+      aria-disabled="false"
+      aria-expanded="false"
+      class="ant-collapse-header"
+      role="button"
+      tabindex="0"
+    >
+      <div
+        class="ant-collapse-expand-icon"
+      >
+        <span
+          aria-label="right"
+          class="anticon anticon-right ant-collapse-arrow"
+          role="img"
+        >
+          <svg
+            aria-hidden="true"
+            data-icon="right"
+            fill="currentColor"
+            focusable="false"
+            height="1em"
+            viewBox="64 64 896 896"
+            width="1em"
+          >
+            <path
+              d="M765.7 486.8L314.9 134.7A7.97 7.97 0 00302 141v77.3c0 4.9 2.3 9.6 6.1 12.6l360 281.1-360 281.1c-3.9 3-6.1 7.7-6.1 12.6V883c0 6.7 7.7 10.4 12.9 6.3l450.8-352.1a31.96 31.96 0 000-50.4z"
+            />
+          </svg>
+        </span>
+      </div>
+      <span
+        class="ant-collapse-header-text"
+      >
+        This is panel header 1, (Ant Design! Ant Design! Ant Design! Ant Design! Ant Design! Ant Design! Ant Design! Ant Design! Ant Design! Ant Design! Ant Design! Ant Design! Ant Design! Ant Design! Ant Design! Ant Design! Ant Design! Ant Design! Ant Design! Ant Design! Ant Design! Ant Design! Ant Design! Ant Design! Ant Design! Ant Design! )
+      </span>
+    </div>
+  </div>
+  <div
+    class="ant-collapse-item"
+  >
+    <div
+      aria-disabled="false"
+      aria-expanded="false"
+      class="ant-collapse-header"
+      role="button"
+      tabindex="0"
+    >
+      <div
+        class="ant-collapse-expand-icon"
+      >
+        <span
+          aria-label="right"
+          class="anticon anticon-right ant-collapse-arrow"
+          role="img"
+        >
+          <svg
+            aria-hidden="true"
+            data-icon="right"
+            fill="currentColor"
+            focusable="false"
+            height="1em"
+            viewBox="64 64 896 896"
+            width="1em"
+          >
+            <path
+              d="M765.7 486.8L314.9 134.7A7.97 7.97 0 00302 141v77.3c0 4.9 2.3 9.6 6.1 12.6l360 281.1-360 281.1c-3.9 3-6.1 7.7-6.1 12.6V883c0 6.7 7.7 10.4 12.9 6.3l450.8-352.1a31.96 31.96 0 000-50.4z"
+            />
+          </svg>
+        </span>
+      </div>
+      <span
+        class="ant-collapse-header-text"
+      >
+        This is panel header 2, (Ant Design! Ant Design! Ant Design! Ant Design! Ant Design! Ant Design! Ant Design! Ant Design! Ant Design! Ant Design! Ant Design! Ant Design! Ant Design! Ant Design! Ant Design! Ant Design! Ant Design! Ant Design! Ant Design! Ant Design! Ant Design! Ant Design! Ant Design! Ant Design! Ant Design! Ant Design! )
+      </span>
+    </div>
+  </div>
+  <div
+    class="ant-collapse-item"
+  >
+    <div
+      aria-disabled="false"
+      aria-expanded="false"
+      class="ant-collapse-header"
+      role="button"
+      tabindex="0"
+    >
+      <div
+        class="ant-collapse-expand-icon"
+      >
+        <span
+          aria-label="right"
+          class="anticon anticon-right ant-collapse-arrow"
+          role="img"
+        >
+          <svg
+            aria-hidden="true"
+            data-icon="right"
+            fill="currentColor"
+            focusable="false"
+            height="1em"
+            viewBox="64 64 896 896"
+            width="1em"
+          >
+            <path
+              d="M765.7 486.8L314.9 134.7A7.97 7.97 0 00302 141v77.3c0 4.9 2.3 9.6 6.1 12.6l360 281.1-360 281.1c-3.9 3-6.1 7.7-6.1 12.6V883c0 6.7 7.7 10.4 12.9 6.3l450.8-352.1a31.96 31.96 0 000-50.4z"
+            />
+          </svg>
+        </span>
+      </div>
+      <span
+        class="ant-collapse-header-text"
+      >
+        This is panel header 3, (Ant Design! Ant Design! Ant Design! Ant Design! Ant Design! Ant Design! Ant Design! Ant Design! Ant Design! Ant Design! Ant Design! Ant Design! Ant Design! Ant Design! Ant Design! Ant Design! Ant Design! Ant Design! Ant Design! Ant Design! Ant Design! Ant Design! Ant Design! Ant Design! Ant Design! Ant Design! )
+      </span>
+    </div>
+  </div>
+</div>
+`;
+
+exports[`renders components/collapse/demo/component-token.tsx extend context correctly 2`] = `[]`;
+
+exports[`renders components/collapse/demo/custom.tsx extend context correctly 1`] = `
+<div
+  class="ant-collapse ant-collapse-icon-position-start ant-collapse-borderless"
+  style="background: rgb(255, 255, 255);"
+>
+  <div
+    class="ant-collapse-item ant-collapse-item-active"
+    style="margin-bottom: 24px; background: rgba(0, 0, 0, 0.02); border-radius: 8px;"
+  >
+    <div
+      aria-disabled="false"
       aria-expanded="true"
       class="ant-collapse-header"
       role="button"
       tabindex="0"
     >
-      <div>
+      <div
+        class="ant-collapse-expand-icon"
+      >
         <span
           aria-label="caret-right"
           class="anticon anticon-caret-right ant-collapse-arrow"
@@ -484,7 +752,7 @@ exports[`renders ./components/collapse/demo/custom.md extend context correctly 1
             fill="currentColor"
             focusable="false"
             height="1em"
-            style="-ms-transform:rotate(90deg);transform:rotate(90deg)"
+            style="transform: rotate(90deg);"
             viewBox="0 0 1024 1024"
             width="1em"
           >
@@ -494,7 +762,11 @@ exports[`renders ./components/collapse/demo/custom.md extend context correctly 1
           </svg>
         </span>
       </div>
-      This is panel header 1
+      <span
+        class="ant-collapse-header-text"
+      >
+        This is panel header 1
+      </span>
     </div>
     <div
       class="ant-collapse-content ant-collapse-content-active"
@@ -503,25 +775,27 @@ exports[`renders ./components/collapse/demo/custom.md extend context correctly 1
         class="ant-collapse-content-box"
       >
         <p>
-          
   A dog is a type of domesticated animal.
   Known for its loyalty and faithfulness,
   it can be found as a welcome guest in many households across the world.
-
         </p>
       </div>
     </div>
   </div>
   <div
-    class="ant-collapse-item site-collapse-custom-panel"
+    class="ant-collapse-item"
+    style="margin-bottom: 24px; background: rgba(0, 0, 0, 0.02); border-radius: 8px;"
   >
     <div
+      aria-disabled="false"
       aria-expanded="false"
       class="ant-collapse-header"
       role="button"
       tabindex="0"
     >
-      <div>
+      <div
+        class="ant-collapse-expand-icon"
+      >
         <span
           aria-label="caret-right"
           class="anticon anticon-caret-right ant-collapse-arrow"
@@ -542,19 +816,27 @@ exports[`renders ./components/collapse/demo/custom.md extend context correctly 1
           </svg>
         </span>
       </div>
-      This is panel header 2
+      <span
+        class="ant-collapse-header-text"
+      >
+        This is panel header 2
+      </span>
     </div>
   </div>
   <div
-    class="ant-collapse-item site-collapse-custom-panel"
+    class="ant-collapse-item"
+    style="margin-bottom: 24px; background: rgba(0, 0, 0, 0.02); border-radius: 8px;"
   >
     <div
+      aria-disabled="false"
       aria-expanded="false"
       class="ant-collapse-header"
       role="button"
       tabindex="0"
     >
-      <div>
+      <div
+        class="ant-collapse-expand-icon"
+      >
         <span
           aria-label="caret-right"
           class="anticon anticon-caret-right ant-collapse-arrow"
@@ -575,27 +857,36 @@ exports[`renders ./components/collapse/demo/custom.md extend context correctly 1
           </svg>
         </span>
       </div>
-      This is panel header 3
+      <span
+        class="ant-collapse-header-text"
+      >
+        This is panel header 3
+      </span>
     </div>
   </div>
 </div>
 `;
 
-exports[`renders ./components/collapse/demo/extra.md extend context correctly 1`] = `
+exports[`renders components/collapse/demo/custom.tsx extend context correctly 2`] = `[]`;
+
+exports[`renders components/collapse/demo/extra.tsx extend context correctly 1`] = `
 Array [
   <div
-    class="ant-collapse ant-collapse-icon-position-left"
+    class="ant-collapse ant-collapse-icon-position-start"
   >
     <div
       class="ant-collapse-item ant-collapse-item-active"
     >
       <div
+        aria-disabled="false"
         aria-expanded="true"
         class="ant-collapse-header"
         role="button"
         tabindex="0"
       >
-        <div>
+        <div
+          class="ant-collapse-expand-icon"
+        >
           <span
             aria-label="right"
             class="anticon anticon-right ant-collapse-arrow"
@@ -607,7 +898,7 @@ Array [
               fill="currentColor"
               focusable="false"
               height="1em"
-              style="-ms-transform:rotate(90deg);transform:rotate(90deg)"
+              style="transform: rotate(90deg);"
               viewBox="64 64 896 896"
               width="1em"
             >
@@ -617,7 +908,11 @@ Array [
             </svg>
           </span>
         </div>
-        This is panel header 1
+        <span
+          class="ant-collapse-header-text"
+        >
+          This is panel header 1
+        </span>
         <div
           class="ant-collapse-extra"
         >
@@ -650,11 +945,9 @@ Array [
           class="ant-collapse-content-box"
         >
           <div>
-            
   A dog is a type of domesticated animal.
   Known for its loyalty and faithfulness,
   it can be found as a welcome guest in many households across the world.
-
           </div>
         </div>
       </div>
@@ -663,12 +956,15 @@ Array [
       class="ant-collapse-item"
     >
       <div
+        aria-disabled="false"
         aria-expanded="false"
         class="ant-collapse-header"
         role="button"
         tabindex="0"
       >
-        <div>
+        <div
+          class="ant-collapse-expand-icon"
+        >
           <span
             aria-label="right"
             class="anticon anticon-right ant-collapse-arrow"
@@ -689,7 +985,11 @@ Array [
             </svg>
           </span>
         </div>
-        This is panel header 2
+        <span
+          class="ant-collapse-header-text"
+        >
+          This is panel header 2
+        </span>
         <div
           class="ant-collapse-extra"
         >
@@ -720,12 +1020,15 @@ Array [
       class="ant-collapse-item"
     >
       <div
+        aria-disabled="false"
         aria-expanded="false"
         class="ant-collapse-header"
         role="button"
         tabindex="0"
       >
-        <div>
+        <div
+          class="ant-collapse-expand-icon"
+        >
           <span
             aria-label="right"
             class="anticon anticon-right ant-collapse-arrow"
@@ -746,7 +1049,11 @@ Array [
             </svg>
           </span>
         </div>
-        This is panel header 3
+        <span
+          class="ant-collapse-header-text"
+        >
+          This is panel header 3
+        </span>
         <div
           class="ant-collapse-extra"
         >
@@ -776,11 +1083,11 @@ Array [
   </div>,
   <br />,
   <span>
-    Expand Icon Position: 
+    Expand Icon Position:
   </span>,
   <div
-    class="ant-select ant-select-single ant-select-show-arrow"
-    style="margin:0 8px"
+    class="ant-select ant-select-outlined ant-select-single ant-select-show-arrow"
+    style="margin: 0px 8px;"
   >
     <div
       class="ant-select-selector"
@@ -789,16 +1096,17 @@ Array [
         class="ant-select-selection-search"
       >
         <input
-          aria-activedescendant="undefined_list_0"
           aria-autocomplete="list"
-          aria-controls="undefined_list"
+          aria-controls="rc_select_TEST_OR_SSR_list"
+          aria-expanded="false"
           aria-haspopup="listbox"
-          aria-owns="undefined_list"
+          aria-owns="rc_select_TEST_OR_SSR_list"
           autocomplete="off"
           class="ant-select-selection-search-input"
+          id="rc_select_TEST_OR_SSR"
           readonly=""
           role="combobox"
-          style="opacity:0"
+          style="opacity: 0;"
           type="search"
           unselectable="on"
           value=""
@@ -806,86 +1114,84 @@ Array [
       </span>
       <span
         class="ant-select-selection-item"
-        title="left"
+        title="start"
       >
-        left
+        start
       </span>
     </div>
-    <div>
-      <div
-        class="ant-select-dropdown"
-        style="opacity:0;pointer-events:none"
-      >
-        <div>
+    <div
+      class="ant-select-dropdown ant-slide-up-appear ant-slide-up-appear-prepare ant-slide-up ant-select-dropdown-placement-bottomLeft"
+      style="--arrow-x: 0px; --arrow-y: 0px; left: -1000vw; top: -1000vh; box-sizing: border-box;"
+    >
+      <div>
+        <div
+          id="rc_select_TEST_OR_SSR_list"
+          role="listbox"
+          style="height: 0px; width: 0px; overflow: hidden;"
+        >
           <div
-            id="undefined_list"
-            role="listbox"
-            style="height:0;width:0;overflow:hidden"
+            aria-label="start"
+            aria-selected="true"
+            id="rc_select_TEST_OR_SSR_list_0"
+            role="option"
           >
-            <div
-              aria-label="left"
-              aria-selected="true"
-              id="undefined_list_0"
-              role="option"
-            >
-              left
-            </div>
-            <div
-              aria-label="right"
-              aria-selected="false"
-              id="undefined_list_1"
-              role="option"
-            >
-              right
-            </div>
+            start
           </div>
           <div
-            class="rc-virtual-list"
-            style="position:relative"
+            aria-label="end"
+            aria-selected="false"
+            id="rc_select_TEST_OR_SSR_list_1"
+            role="option"
           >
-            <div
-              class="rc-virtual-list-holder"
-              style="max-height:256px;overflow-y:auto;overflow-anchor:none"
-            >
-              <div>
+            end
+          </div>
+        </div>
+        <div
+          class="rc-virtual-list"
+          style="position: relative;"
+        >
+          <div
+            class="rc-virtual-list-holder"
+            style="max-height: 256px; overflow-y: auto;"
+          >
+            <div>
+              <div
+                class="rc-virtual-list-holder-inner"
+                style="display: flex; flex-direction: column;"
+              >
                 <div
-                  class="rc-virtual-list-holder-inner"
-                  style="display:flex;flex-direction:column"
+                  aria-selected="true"
+                  class="ant-select-item ant-select-item-option ant-select-item-option-active ant-select-item-option-selected"
+                  title="start"
                 >
                   <div
-                    aria-selected="true"
-                    class="ant-select-item ant-select-item-option ant-select-item-option-active ant-select-item-option-selected"
-                    title="left"
+                    class="ant-select-item-option-content"
                   >
-                    <div
-                      class="ant-select-item-option-content"
-                    >
-                      left
-                    </div>
-                    <span
-                      aria-hidden="true"
-                      class="ant-select-item-option-state"
-                      style="user-select:none;-webkit-user-select:none"
-                      unselectable="on"
-                    />
+                    start
                   </div>
+                  <span
+                    aria-hidden="true"
+                    class="ant-select-item-option-state"
+                    style="user-select: none;"
+                    unselectable="on"
+                  />
+                </div>
+                <div
+                  aria-selected="false"
+                  class="ant-select-item ant-select-item-option"
+                  title="end"
+                >
                   <div
-                    aria-selected="false"
-                    class="ant-select-item ant-select-item-option"
-                    title="right"
+                    class="ant-select-item-option-content"
                   >
-                    <div
-                      class="ant-select-item-option-content"
-                    >
-                      right
-                    </div>
-                    <span
-                      aria-hidden="true"
-                      class="ant-select-item-option-state"
-                      style="user-select:none;-webkit-user-select:none"
-                      unselectable="on"
-                    />
+                    end
                   </div>
+                  <span
+                    aria-hidden="true"
+                    class="ant-select-item-option-state"
+                    style="user-select: none;"
+                    unselectable="on"
+                  />
                 </div>
               </div>
             </div>
@@ -896,7 +1202,7 @@ Array [
     <span
       aria-hidden="true"
       class="ant-select-arrow"
-      style="user-select:none;-webkit-user-select:none"
+      style="user-select: none;"
       unselectable="on"
     >
       <span
@@ -923,20 +1229,25 @@ Array [
 ]
 `;
 
-exports[`renders ./components/collapse/demo/ghost.md extend context correctly 1`] = `
+exports[`renders components/collapse/demo/extra.tsx extend context correctly 2`] = `[]`;
+
+exports[`renders components/collapse/demo/ghost.tsx extend context correctly 1`] = `
 <div
-  class="ant-collapse ant-collapse-icon-position-left ant-collapse-ghost"
+  class="ant-collapse ant-collapse-icon-position-start ant-collapse-ghost"
 >
   <div
     class="ant-collapse-item ant-collapse-item-active"
   >
     <div
+      aria-disabled="false"
       aria-expanded="true"
       class="ant-collapse-header"
       role="button"
       tabindex="0"
     >
-      <div>
+      <div
+        class="ant-collapse-expand-icon"
+      >
         <span
           aria-label="right"
           class="anticon anticon-right ant-collapse-arrow"
@@ -948,7 +1259,7 @@ exports[`renders ./components/collapse/demo/ghost.md extend context correctly 1`
             fill="currentColor"
             focusable="false"
             height="1em"
-            style="-ms-transform:rotate(90deg);transform:rotate(90deg)"
+            style="transform: rotate(90deg);"
             viewBox="64 64 896 896"
             width="1em"
           >
@@ -958,7 +1269,11 @@ exports[`renders ./components/collapse/demo/ghost.md extend context correctly 1`
           </svg>
         </span>
       </div>
-      This is panel header 1
+      <span
+        class="ant-collapse-header-text"
+      >
+        This is panel header 1
+      </span>
     </div>
     <div
       class="ant-collapse-content ant-collapse-content-active"
@@ -967,11 +1282,9 @@ exports[`renders ./components/collapse/demo/ghost.md extend context correctly 1`
         class="ant-collapse-content-box"
       >
         <p>
-          
   A dog is a type of domesticated animal.
   Known for its loyalty and faithfulness,
   it can be found as a welcome guest in many households across the world.
-
         </p>
       </div>
     </div>
@@ -980,12 +1293,15 @@ exports[`renders ./components/collapse/demo/ghost.md extend context correctly 1`
     class="ant-collapse-item"
   >
     <div
+      aria-disabled="false"
       aria-expanded="false"
       class="ant-collapse-header"
       role="button"
       tabindex="0"
     >
-      <div>
+      <div
+        class="ant-collapse-expand-icon"
+      >
         <span
           aria-label="right"
           class="anticon anticon-right ant-collapse-arrow"
@@ -1006,19 +1322,26 @@ exports[`renders ./components/collapse/demo/ghost.md extend context correctly 1`
           </svg>
         </span>
       </div>
-      This is panel header 2
+      <span
+        class="ant-collapse-header-text"
+      >
+        This is panel header 2
+      </span>
     </div>
   </div>
   <div
     class="ant-collapse-item"
   >
     <div
+      aria-disabled="false"
       aria-expanded="false"
       class="ant-collapse-header"
       role="button"
       tabindex="0"
     >
-      <div>
+      <div
+        class="ant-collapse-expand-icon"
+      >
         <span
           aria-label="right"
           class="anticon anticon-right ant-collapse-arrow"
@@ -1039,26 +1362,35 @@ exports[`renders ./components/collapse/demo/ghost.md extend context correctly 1`
           </svg>
         </span>
       </div>
-      This is panel header 3
+      <span
+        class="ant-collapse-header-text"
+      >
+        This is panel header 3
+      </span>
     </div>
   </div>
 </div>
 `;
 
-exports[`renders ./components/collapse/demo/mix.md extend context correctly 1`] = `
+exports[`renders components/collapse/demo/ghost.tsx extend context correctly 2`] = `[]`;
+
+exports[`renders components/collapse/demo/mix.tsx extend context correctly 1`] = `
 <div
-  class="ant-collapse ant-collapse-icon-position-left"
+  class="ant-collapse ant-collapse-icon-position-start"
 >
   <div
     class="ant-collapse-item"
   >
     <div
+      aria-disabled="false"
       aria-expanded="false"
       class="ant-collapse-header"
       role="button"
       tabindex="0"
     >
-      <div>
+      <div
+        class="ant-collapse-expand-icon"
+      >
         <span
           aria-label="right"
           class="anticon anticon-right ant-collapse-arrow"
@@ -1079,19 +1411,26 @@ exports[`renders ./components/collapse/demo/mix.md extend context correctly 1`] 
           </svg>
         </span>
       </div>
-      This is panel header 1
+      <span
+        class="ant-collapse-header-text"
+      >
+        This is panel header 1
+      </span>
     </div>
   </div>
   <div
     class="ant-collapse-item"
   >
     <div
+      aria-disabled="false"
       aria-expanded="false"
       class="ant-collapse-header"
       role="button"
       tabindex="0"
     >
-      <div>
+      <div
+        class="ant-collapse-expand-icon"
+      >
         <span
           aria-label="right"
           class="anticon anticon-right ant-collapse-arrow"
@@ -1112,19 +1451,26 @@ exports[`renders ./components/collapse/demo/mix.md extend context correctly 1`] 
           </svg>
         </span>
       </div>
-      This is panel header 2
+      <span
+        class="ant-collapse-header-text"
+      >
+        This is panel header 2
+      </span>
     </div>
   </div>
   <div
     class="ant-collapse-item"
   >
     <div
+      aria-disabled="false"
       aria-expanded="false"
       class="ant-collapse-header"
       role="button"
       tabindex="0"
     >
-      <div>
+      <div
+        class="ant-collapse-expand-icon"
+      >
         <span
           aria-label="right"
           class="anticon anticon-right ant-collapse-arrow"
@@ -1145,26 +1491,35 @@ exports[`renders ./components/collapse/demo/mix.md extend context correctly 1`] 
           </svg>
         </span>
       </div>
-      This is panel header 3
+      <span
+        class="ant-collapse-header-text"
+      >
+        This is panel header 3
+      </span>
     </div>
   </div>
 </div>
 `;
 
-exports[`renders ./components/collapse/demo/noarrow.md extend context correctly 1`] = `
+exports[`renders components/collapse/demo/mix.tsx extend context correctly 2`] = `[]`;
+
+exports[`renders components/collapse/demo/noarrow.tsx extend context correctly 1`] = `
 <div
-  class="ant-collapse ant-collapse-icon-position-left"
+  class="ant-collapse ant-collapse-icon-position-start"
 >
   <div
     class="ant-collapse-item ant-collapse-item-active"
   >
     <div
+      aria-disabled="false"
       aria-expanded="true"
       class="ant-collapse-header"
       role="button"
       tabindex="0"
     >
-      <div>
+      <div
+        class="ant-collapse-expand-icon"
+      >
         <span
           aria-label="right"
           class="anticon anticon-right ant-collapse-arrow"
@@ -1176,7 +1531,7 @@ exports[`renders ./components/collapse/demo/noarrow.md extend context correctly 
             fill="currentColor"
             focusable="false"
             height="1em"
-            style="-ms-transform:rotate(90deg);transform:rotate(90deg)"
+            style="transform: rotate(90deg);"
             viewBox="64 64 896 896"
             width="1em"
           >
@@ -1186,7 +1541,11 @@ exports[`renders ./components/collapse/demo/noarrow.md extend context correctly 
           </svg>
         </span>
       </div>
-      This is panel header with arrow icon
+      <span
+        class="ant-collapse-header-text"
+      >
+        This is panel header with arrow icon
+      </span>
     </div>
     <div
       class="ant-collapse-content ant-collapse-content-active"
@@ -1195,26 +1554,200 @@ exports[`renders ./components/collapse/demo/noarrow.md extend context correctly 
         class="ant-collapse-content-box"
       >
         <p>
-          
   A dog is a type of domesticated animal.
   Known for its loyalty and faithfulness,
   it can be found as a welcome guest in many households across the world.
-
         </p>
       </div>
     </div>
   </div>
   <div
-    class="ant-collapse-item ant-collapse-no-arrow"
+    class="ant-collapse-item"
   >
     <div
+      aria-disabled="false"
       aria-expanded="false"
       class="ant-collapse-header"
       role="button"
       tabindex="0"
     >
-      This is panel header with no arrow icon
+      <span
+        class="ant-collapse-header-text"
+      >
+        This is panel header with no arrow icon
+      </span>
     </div>
   </div>
 </div>
 `;
+
+exports[`renders components/collapse/demo/noarrow.tsx extend context correctly 2`] = `[]`;
+
+exports[`renders components/collapse/demo/size.tsx extend context correctly 1`] = `
+Array [
+  <div
+    class="ant-divider ant-divider-horizontal ant-divider-with-text ant-divider-with-text-left"
+    role="separator"
+  >
+    <span
+      class="ant-divider-inner-text"
+    >
+      Default Size
+    </span>
+  </div>,
+  <div
+    class="ant-collapse ant-collapse-icon-position-start"
+  >
+    <div
+      class="ant-collapse-item"
+    >
+      <div
+        aria-disabled="false"
+        aria-expanded="false"
+        class="ant-collapse-header"
+        role="button"
+        tabindex="0"
+      >
+        <div
+          class="ant-collapse-expand-icon"
+        >
+          <span
+            aria-label="right"
+            class="anticon anticon-right ant-collapse-arrow"
+            role="img"
+          >
+            <svg
+              aria-hidden="true"
+              data-icon="right"
+              fill="currentColor"
+              focusable="false"
+              height="1em"
+              viewBox="64 64 896 896"
+              width="1em"
+            >
+              <path
+                d="M765.7 486.8L314.9 134.7A7.97 7.97 0 00302 141v77.3c0 4.9 2.3 9.6 6.1 12.6l360 281.1-360 281.1c-3.9 3-6.1 7.7-6.1 12.6V883c0 6.7 7.7 10.4 12.9 6.3l450.8-352.1a31.96 31.96 0 000-50.4z"
+              />
+            </svg>
+          </span>
+        </div>
+        <span
+          class="ant-collapse-header-text"
+        >
+          This is default size panel header
+        </span>
+      </div>
+    </div>
+  </div>,
+  <div
+    class="ant-divider ant-divider-horizontal ant-divider-with-text ant-divider-with-text-left"
+    role="separator"
+  >
+    <span
+      class="ant-divider-inner-text"
+    >
+      Small Size
+    </span>
+  </div>,
+  <div
+    class="ant-collapse ant-collapse-icon-position-start ant-collapse-small"
+  >
+    <div
+      class="ant-collapse-item"
+    >
+      <div
+        aria-disabled="false"
+        aria-expanded="false"
+        class="ant-collapse-header"
+        role="button"
+        tabindex="0"
+      >
+        <div
+          class="ant-collapse-expand-icon"
+        >
+          <span
+            aria-label="right"
+            class="anticon anticon-right ant-collapse-arrow"
+            role="img"
+          >
+            <svg
+              aria-hidden="true"
+              data-icon="right"
+              fill="currentColor"
+              focusable="false"
+              height="1em"
+              viewBox="64 64 896 896"
+              width="1em"
+            >
+              <path
+                d="M765.7 486.8L314.9 134.7A7.97 7.97 0 00302 141v77.3c0 4.9 2.3 9.6 6.1 12.6l360 281.1-360 281.1c-3.9 3-6.1 7.7-6.1 12.6V883c0 6.7 7.7 10.4 12.9 6.3l450.8-352.1a31.96 31.96 0 000-50.4z"
+              />
+            </svg>
+          </span>
+        </div>
+        <span
+          class="ant-collapse-header-text"
+        >
+          This is small size panel header
+        </span>
+      </div>
+    </div>
+  </div>,
+  <div
+    class="ant-divider ant-divider-horizontal ant-divider-with-text ant-divider-with-text-left"
+    role="separator"
+  >
+    <span
+      class="ant-divider-inner-text"
+    >
+      Large Size
+    </span>
+  </div>,
+  <div
+    class="ant-collapse ant-collapse-icon-position-start ant-collapse-large"
+  >
+    <div
+      class="ant-collapse-item"
+    >
+      <div
+        aria-disabled="false"
+        aria-expanded="false"
+        class="ant-collapse-header"
+        role="button"
+        tabindex="0"
+      >
+        <div
+          class="ant-collapse-expand-icon"
+        >
+          <span
+            aria-label="right"
+            class="anticon anticon-right ant-collapse-arrow"
+            role="img"
+          >
+            <svg
+              aria-hidden="true"
+              data-icon="right"
+              fill="currentColor"
+              focusable="false"
+              height="1em"
+              viewBox="64 64 896 896"
+              width="1em"
+            >
+              <path
+                d="M765.7 486.8L314.9 134.7A7.97 7.97 0 00302 141v77.3c0 4.9 2.3 9.6 6.1 12.6l360 281.1-360 281.1c-3.9 3-6.1 7.7-6.1 12.6V883c0 6.7 7.7 10.4 12.9 6.3l450.8-352.1a31.96 31.96 0 000-50.4z"
+              />
+            </svg>
+          </span>
+        </div>
+        <span
+          class="ant-collapse-header-text"
+        >
+          This is large size panel header
+        </span>
+      </div>
+    </div>
+  </div>,
+]
+`;
+
+exports[`renders components/collapse/demo/size.tsx extend context correctly 2`] = `[]`;

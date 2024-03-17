@@ -1,24 +1,27 @@
-import * as React from 'react';
+import React from 'react';
 
-export const { isValidElement } = React;
+import type { AnyObject } from './type';
 
-type AnyObject = Record<any, any>;
+export function isFragment(child: any): boolean {
+  return child && React.isValidElement(child) && child.type === React.Fragment;
+}
 
-type RenderProps = undefined | AnyObject | ((originProps: AnyObject) => AnyObject | undefined);
+type RenderProps = AnyObject | ((originProps: AnyObject) => AnyObject | void);
 
-export function replaceElement(
+export const replaceElement = <P>(
   element: React.ReactNode,
   replacement: React.ReactNode,
-  props: RenderProps,
-): React.ReactNode {
-  if (!isValidElement(element)) return replacement;
-
-  return React.cloneElement(
+  props?: RenderProps,
+) => {
+  if (!React.isValidElement<P>(element)) {
+    return replacement;
+  }
+  return React.cloneElement<P>(
     element,
     typeof props === 'function' ? props(element.props || {}) : props,
   );
-}
+};
 
-export function cloneElement(element: React.ReactNode, props?: RenderProps): React.ReactElement {
-  return replaceElement(element, element, props) as React.ReactElement;
+export function cloneElement<P>(element: React.ReactNode, props?: RenderProps) {
+  return replaceElement<P>(element, element, props) as React.ReactElement;
 }

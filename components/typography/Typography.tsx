@@ -1,75 +1,96 @@
 import * as React from 'react';
 import classNames from 'classnames';
 import { composeRef } from 'rc-util/lib/ref';
-import { ConfigConsumer, ConfigConsumerProps } from '../config-provider';
-import devWarning from '../_util/devWarning';
 
-export interface TypographyProps {
+import { devUseWarning } from '../_util/warning';
+import type { ConfigConsumerProps, DirectionType } from '../config-provider';
+import { ConfigContext } from '../config-provider';
+import useStyle from './style';
+
+export interface TypographyProps<C extends keyof JSX.IntrinsicElements>
+  extends React.HTMLAttributes<HTMLElement> {
   id?: string;
   prefixCls?: string;
   className?: string;
+  rootClassName?: string;
   style?: React.CSSProperties;
   children?: React.ReactNode;
+  /** @internal */
+  component?: C;
   ['aria-label']?: string;
+  direction?: DirectionType;
 }
 
-interface InternalTypographyProps extends TypographyProps {
-  component?: string;
+interface InternalTypographyProps<C extends keyof JSX.IntrinsicElements>
+  extends TypographyProps<C> {
   /** @deprecated Use `ref` directly if using React 16 */
   setContentRef?: (node: HTMLElement) => void;
 }
 
-const Typography: React.ForwardRefRenderFunction<{}, InternalTypographyProps> = (
-  {
+const Typography = React.forwardRef<
+  HTMLElement,
+  InternalTypographyProps<keyof JSX.IntrinsicElements>
+>((props, ref) => {
+  const {
     prefixCls: customizePrefixCls,
-    component = 'article',
+    component: Component = 'article',
     className,
-    'aria-label': ariaLabel,
+    rootClassName,
     setContentRef,
     children,
+    direction: typographyDirection,
+    style,
     ...restProps
-  },
-  ref,
-) => {
-  let mergedRef = ref;
+  } = props;
+  const {
+    getPrefixCls,
+    direction: contextDirection,
+    typography,
+  } = React.useContext<ConfigConsumerProps>(ConfigContext);
 
+  const direction = typographyDirection ?? contextDirection;
+
+  let mergedRef = ref;
   if (setContentRef) {
-    devWarning(false, 'Typography', '`setContentRef` is deprecated. Please use `ref` instead.');
     mergedRef = composeRef(ref, setContentRef);
   }
 
-  return (
-    <ConfigConsumer>
-      {({ getPrefixCls, direction }: ConfigConsumerProps) => {
-        const Component = component as any;
-        const prefixCls = getPrefixCls('typography', customizePrefixCls);
-        const componentClassName = classNames(
-          prefixCls,
-          {
-            [`${prefixCls}-rtl`]: direction === 'rtl',
-          },
-          className,
-        );
-        return (
-          <Component
-            className={componentClassName}
-            aria-label={ariaLabel}
-            ref={mergedRef}
-            {...restProps}
-          >
-            {children}
-          </Component>
-        );
-      }}
-    </ConfigConsumer>
+  if (process.env.NODE_ENV !== 'production') {
+    const warning = devUseWarning('Typography');
+
+    warning.deprecated(!setContentRef, 'setContentRef', 'ref');
+  }
+
+  const prefixCls = getPrefixCls('typography', customizePrefixCls);
+
+  // Style
+  const [wrapCSSVar, hashId, cssVarCls] = useStyle(prefixCls);
+
+  const componentClassName = classNames(
+    prefixCls,
+    typography?.className,
+    {
+      [`${prefixCls}-rtl`]: direction === 'rtl',
+    },
+    className,
+    rootClassName,
+    hashId,
+    cssVarCls,
   );
-};
 
-const RefTypography = React.forwardRef(Typography);
+  const mergedStyle: React.CSSProperties = { ...typography?.style, ...style };
 
-RefTypography.displayName = 'Typography';
+  return wrapCSSVar(
+    // @ts-expect-error: Expression produces a union type that is too complex to represent.
+    <Component className={componentClassName} style={mergedStyle} ref={mergedRef} {...restProps}>
+      {children}
+    </Component>,
+  );
+});
+
+if (process.env.NODE_ENV !== 'production') {
+  Typography.displayName = 'Typography';
+}
 
 // es default export should use const instead of let
-const ExportTypography = (RefTypography as unknown) as React.FC<TypographyProps>;
-
-export default ExportTypography;
+export default Typography;

@@ -1,54 +1,63 @@
-import * as React from 'react';
-import RcRate from 'rc-rate';
 import StarFilled from '@ant-design/icons/StarFilled';
-
-import Tooltip from '../tooltip';
+import classNames from 'classnames';
+import RcRate from 'rc-rate';
+import type { RateRef, RateProps as RcRateProps } from 'rc-rate/lib/Rate';
+import * as React from 'react';
 import { ConfigContext } from '../config-provider';
+import Tooltip from '../tooltip';
+import useStyle from './style';
 
-export interface RateProps {
-  prefixCls?: string;
-  count?: number;
-  value?: number;
-  defaultValue?: number;
-  allowHalf?: boolean;
-  allowClear?: boolean;
-  disabled?: boolean;
+export interface RateProps extends RcRateProps {
+  rootClassName?: string;
   tooltips?: Array<string>;
-  onChange?: (value: number) => void;
-  onHoverChange?: (value: number) => void;
-  character?: React.ReactNode;
-  className?: string;
-  style?: React.CSSProperties;
 }
 
 interface RateNodeProps {
   index: number;
 }
 
-const Rate = React.forwardRef<unknown, RateProps>(({ prefixCls, tooltips, ...props }, ref) => {
+const Rate = React.forwardRef<RateRef, RateProps>((props, ref) => {
+  const {
+    prefixCls,
+    className,
+    rootClassName,
+    style,
+    tooltips,
+    character = <StarFilled />,
+    ...rest
+  } = props;
+
   const characterRender = (node: React.ReactElement, { index }: RateNodeProps) => {
-    if (!tooltips) return node;
+    if (!tooltips) {
+      return node;
+    }
     return <Tooltip title={tooltips[index]}>{node}</Tooltip>;
   };
 
-  const { getPrefixCls, direction } = React.useContext(ConfigContext);
+  const { getPrefixCls, direction, rate } = React.useContext(ConfigContext);
   const ratePrefixCls = getPrefixCls('rate', prefixCls);
 
-  return (
+  // Style
+  const [wrapCSSVar, hashId, cssVarCls] = useStyle(ratePrefixCls);
+
+  const mergedStyle: React.CSSProperties = { ...rate?.style, ...style };
+
+  return wrapCSSVar(
     <RcRate
       ref={ref}
+      character={character}
       characterRender={characterRender}
-      {...props}
+      {...rest}
+      className={classNames(className, rootClassName, hashId, cssVarCls, rate?.className)}
+      style={mergedStyle}
       prefixCls={ratePrefixCls}
       direction={direction}
-    />
+    />,
   );
 });
 
-Rate.displayName = 'Rate';
-
-Rate.defaultProps = {
-  character: <StarFilled />,
-};
+if (process.env.NODE_ENV !== 'production') {
+  Rate.displayName = 'Rate';
+}
 
 export default Rate;

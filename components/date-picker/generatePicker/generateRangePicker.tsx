@@ -1,116 +1,176 @@
 import * as React from 'react';
-import classNames from 'classnames';
+import { forwardRef, useContext, useImperativeHandle } from 'react';
 import CalendarOutlined from '@ant-design/icons/CalendarOutlined';
 import ClockCircleOutlined from '@ant-design/icons/ClockCircleOutlined';
-import CloseCircleFilled from '@ant-design/icons/CloseCircleFilled';
 import SwapRightOutlined from '@ant-design/icons/SwapRightOutlined';
-import { RangePicker as RCRangePicker } from 'rc-picker';
-import { GenerateConfig } from 'rc-picker/lib/generate/index';
+import classNames from 'classnames';
+import { RangePicker as RCRangePicker, type PickerRef } from 'rc-picker';
+import type { GenerateConfig } from 'rc-picker/lib/generate/index';
+
+import { useZIndex } from '../../_util/hooks/useZIndex';
+import { getMergedStatus, getStatusClassNames } from '../../_util/statusUtils';
+import type { AnyObject } from '../../_util/type';
+import { devUseWarning } from '../../_util/warning';
+import { ConfigContext } from '../../config-provider';
+import DisabledContext from '../../config-provider/DisabledContext';
+import useCSSVarCls from '../../config-provider/hooks/useCSSVarCls';
+import useSize from '../../config-provider/hooks/useSize';
+import { FormItemInputContext } from '../../form/context';
+import useVariant from '../../form/hooks/useVariants';
+import { useLocale } from '../../locale';
+import { NoCompactStyle, useCompactItemContext } from '../../space/Compact';
 import enUS from '../locale/en_US';
-import { ConfigContext, ConfigConsumerProps } from '../../config-provider';
-import SizeContext from '../../config-provider/SizeContext';
-import LocaleReceiver from '../../locale-provider/LocaleReceiver';
-import { getRangePlaceholder } from '../util';
-import { RangePickerProps, PickerLocale, getTimeProps, Components } from '.';
-import { PickerComponentClass } from './interface';
+import useStyle from '../style';
+import { getRangePlaceholder, transPlacement2DropdownAlign, useIcons } from '../util';
+import type { RangePickerProps } from './interface';
+import useComponents from './useComponents';
 
-export default function generateRangePicker<DateType>(
+export default function generateRangePicker<DateType extends AnyObject>(
   generateConfig: GenerateConfig<DateType>,
-): PickerComponentClass<RangePickerProps<DateType>> {
-  class RangePicker extends React.Component<RangePickerProps<DateType>> {
-    static contextType = ConfigContext;
+) {
+  type DateRangePickerProps = RangePickerProps<DateType>;
 
-    context: ConfigConsumerProps;
+  const RangePicker = forwardRef<PickerRef, DateRangePickerProps>((props, ref) => {
+    const {
+      prefixCls: customizePrefixCls,
+      getPopupContainer: customGetPopupContainer,
+      components,
+      className,
+      style,
+      placement,
+      size: customizeSize,
+      disabled: customDisabled,
+      bordered = true,
+      placeholder,
+      popupClassName,
+      dropdownClassName,
+      status: customStatus,
+      rootClassName,
+      variant: customVariant,
+      ...restProps
+    } = props;
 
-    pickerRef = React.createRef<RCRangePicker<DateType>>();
+    const innerRef = React.useRef<PickerRef>(null);
+    const { getPrefixCls, direction, getPopupContainer, rangePicker } = useContext(ConfigContext);
+    const prefixCls = getPrefixCls('picker', customizePrefixCls);
+    const { compactSize, compactItemClassnames } = useCompactItemContext(prefixCls, direction);
+    const { picker } = props;
+    const rootPrefixCls = getPrefixCls();
 
-    focus = () => {
-      if (this.pickerRef.current) {
-        this.pickerRef.current.focus();
-      }
-    };
+    const [variant, enableVariantCls] = useVariant(customVariant, bordered);
 
-    blur = () => {
-      if (this.pickerRef.current) {
-        this.pickerRef.current.blur();
-      }
-    };
+    const rootCls = useCSSVarCls(prefixCls);
+    const [wrapCSSVar, hashId, cssVarCls] = useStyle(prefixCls, rootCls);
 
-    renderPicker = (contextLocale: PickerLocale) => {
-      const locale = { ...contextLocale, ...this.props.locale };
-      const { getPrefixCls, direction, getPopupContainer } = this.context;
-      const {
-        prefixCls: customizePrefixCls,
-        getPopupContainer: customGetPopupContainer,
-        className,
-        size: customizeSize,
-        bordered = true,
-        placeholder,
-        ...restProps
-      } = this.props;
-      const { format, showTime, picker } = this.props as any;
-      const prefixCls = getPrefixCls('picker', customizePrefixCls);
+    // =================== Warning =====================
+    if (process.env.NODE_ENV !== 'production') {
+      const warning = devUseWarning('DatePicker.RangePicker');
 
-      let additionalOverrideProps: any = {};
+      warning.deprecated(!dropdownClassName, 'dropdownClassName', 'popupClassName');
 
-      additionalOverrideProps = {
-        ...additionalOverrideProps,
-        ...(showTime ? getTimeProps({ format, picker, ...showTime }) : {}),
-        ...(picker === 'time' ? getTimeProps({ format, ...this.props, picker }) : {}),
-      };
-      const rootPrefixCls = getPrefixCls();
-
-      return (
-        <SizeContext.Consumer>
-          {size => {
-            const mergedSize = customizeSize || size;
-
-            return (
-              <RCRangePicker<DateType>
-                separator={
-                  <span aria-label="to" className={`${prefixCls}-separator`}>
-                    <SwapRightOutlined />
-                  </span>
-                }
-                ref={this.pickerRef}
-                placeholder={getRangePlaceholder(picker, locale, placeholder)}
-                suffixIcon={picker === 'time' ? <ClockCircleOutlined /> : <CalendarOutlined />}
-                clearIcon={<CloseCircleFilled />}
-                prevIcon={<span className={`${prefixCls}-prev-icon`} />}
-                nextIcon={<span className={`${prefixCls}-next-icon`} />}
-                superPrevIcon={<span className={`${prefixCls}-super-prev-icon`} />}
-                superNextIcon={<span className={`${prefixCls}-super-next-icon`} />}
-                allowClear
-                transitionName={`${rootPrefixCls}-slide-up`}
-                {...restProps}
-                {...additionalOverrideProps}
-                className={classNames(
-                  {
-                    [`${prefixCls}-${mergedSize}`]: mergedSize,
-                    [`${prefixCls}-borderless`]: !bordered,
-                  },
-                  className,
-                )}
-                locale={locale!.lang}
-                prefixCls={prefixCls}
-                getPopupContainer={customGetPopupContainer || getPopupContainer}
-                generateConfig={generateConfig}
-                components={Components}
-                direction={direction}
-              />
-            );
-          }}
-        </SizeContext.Consumer>
-      );
-    };
-
-    render() {
-      return (
-        <LocaleReceiver componentName="DatePicker" defaultLocale={enUS}>
-          {this.renderPicker}
-        </LocaleReceiver>
-      );
+      warning.deprecated(!('bordered' in props), 'bordered', 'variant');
     }
+
+    // ===================== Icon =====================
+    const [mergedAllowClear] = useIcons(props, prefixCls);
+
+    // ================== components ==================
+    const mergedComponents = useComponents(components);
+
+    // ===================== Size =====================
+    const mergedSize = useSize((ctx) => customizeSize ?? compactSize ?? ctx);
+
+    // ===================== Disabled =====================
+    const disabled = React.useContext(DisabledContext);
+    const mergedDisabled = customDisabled ?? disabled;
+
+    // ===================== FormItemInput =====================
+    const formItemContext = useContext(FormItemInputContext);
+    const { hasFeedback, status: contextStatus, feedbackIcon } = formItemContext;
+
+    const suffixNode = (
+      <>
+        {picker === 'time' ? <ClockCircleOutlined /> : <CalendarOutlined />}
+        {hasFeedback && feedbackIcon}
+      </>
+    );
+
+    useImperativeHandle(ref, () => innerRef.current!);
+
+    const [contextLocale] = useLocale('Calendar', enUS);
+
+    const locale = { ...contextLocale, ...props.locale! };
+
+    // ============================ zIndex ============================
+    const [zIndex] = useZIndex('DatePicker', props.popupStyle?.zIndex as number);
+
+    return wrapCSSVar(
+      <NoCompactStyle>
+        <RCRangePicker<DateType>
+          separator={
+            <span aria-label="to" className={`${prefixCls}-separator`}>
+              <SwapRightOutlined />
+            </span>
+          }
+          disabled={mergedDisabled}
+          ref={innerRef}
+          popupAlign={transPlacement2DropdownAlign(direction, placement)}
+          placeholder={getRangePlaceholder(locale, picker, placeholder)}
+          suffixIcon={suffixNode}
+          prevIcon={<span className={`${prefixCls}-prev-icon`} />}
+          nextIcon={<span className={`${prefixCls}-next-icon`} />}
+          superPrevIcon={<span className={`${prefixCls}-super-prev-icon`} />}
+          superNextIcon={<span className={`${prefixCls}-super-next-icon`} />}
+          transitionName={`${rootPrefixCls}-slide-up`}
+          {...restProps}
+          className={classNames(
+            {
+              [`${prefixCls}-${mergedSize}`]: mergedSize,
+              [`${prefixCls}-${variant}`]: enableVariantCls,
+            },
+            getStatusClassNames(
+              prefixCls,
+              getMergedStatus(contextStatus, customStatus),
+              hasFeedback,
+            ),
+            hashId,
+            compactItemClassnames,
+            className,
+            rangePicker?.className,
+            cssVarCls,
+            rootCls,
+            rootClassName,
+          )}
+          style={{ ...rangePicker?.style, ...style }}
+          locale={locale.lang}
+          prefixCls={prefixCls}
+          getPopupContainer={customGetPopupContainer || getPopupContainer}
+          generateConfig={generateConfig}
+          components={mergedComponents}
+          direction={direction}
+          classNames={{
+            popup: classNames(
+              hashId,
+              popupClassName || dropdownClassName,
+              cssVarCls,
+              rootCls,
+              rootClassName,
+            ),
+          }}
+          styles={{
+            popup: {
+              ...props.popupStyle,
+              zIndex,
+            },
+          }}
+          allowClear={mergedAllowClear}
+        />
+      </NoCompactStyle>,
+    );
+  });
+
+  if (process.env.NODE_ENV !== 'production') {
+    RangePicker.displayName = 'RangePicker';
   }
 
   return RangePicker;

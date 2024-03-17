@@ -2,7 +2,7 @@ const { moduleNameMapper, transformIgnorePatterns } = require('./.jest');
 
 // jest config for server render environment
 module.exports = {
-  setupFiles: ['./tests/setup.js'],
+  setupFiles: ['./tests/setup.ts'],
   setupFilesAfterEnv: ['./tests/setupAfterEnv.ts'],
   moduleFileExtensions: ['ts', 'tsx', 'js', 'md'],
   moduleNameMapper,
@@ -12,8 +12,8 @@ module.exports = {
     '\\.md$': './node_modules/@ant-design/tools/lib/jest/demoPreprocessor',
     '\\.(jpg|png|gif|svg)$': './node_modules/@ant-design/tools/lib/jest/imagePreprocessor',
   },
-  testRegex: 'demo\\.test\\.(j|t)s$',
+  testRegex: 'node\\.test\\.(j|t)sx$',
   testEnvironment: 'node',
   transformIgnorePatterns,
-  snapshotSerializers: ['enzyme-to-json/serializer'],
+  // bail: true,
 };

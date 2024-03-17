@@ -1,16 +1,18 @@
 import * as React from 'react';
 import classNames from 'classnames';
 import useMergedState from 'rc-util/lib/hooks/useMergedState';
-import Radio from './radio';
-import { RadioGroupProps, RadioChangeEvent, RadioGroupButtonStyle } from './interface';
+import pickAttrs from 'rc-util/lib/pickAttrs';
+
 import { ConfigContext } from '../config-provider';
-import SizeContext from '../config-provider/SizeContext';
+import useSize from '../config-provider/hooks/useSize';
 import { RadioGroupContextProvider } from './context';
-import getDataOrAriaProps from '../_util/getDataOrAriaProps';
+import type { RadioChangeEvent, RadioGroupButtonStyle, RadioGroupProps } from './interface';
+import Radio from './radio';
+import useStyle from './style';
+import useCSSVarCls from '../config-provider/hooks/useCSSVarCls';
 
 const RadioGroup = React.forwardRef<HTMLDivElement, RadioGroupProps>((props, ref) => {
   const { getPrefixCls, direction } = React.useContext(ConfigContext);
-  const size = React.useContext(SizeContext);
 
   const [value, setValue] = useMergedState(props.defaultValue, {
     value: props.value,
@@ -28,94 +30,105 @@ const RadioGroup = React.forwardRef<HTMLDivElement, RadioGroupProps>((props, ref
     }
   };
 
-  const renderGroup = () => {
-    const {
-      prefixCls: customizePrefixCls,
-      className = '',
-      options,
-      optionType,
-      buttonStyle = 'outline' as RadioGroupButtonStyle,
-      disabled,
-      children,
-      size: customizeSize,
-      style,
-      id,
-      onMouseEnter,
-      onMouseLeave,
-    } = props;
-    const prefixCls = getPrefixCls('radio', customizePrefixCls);
-    const groupPrefixCls = `${prefixCls}-group`;
-    let childrenToRender = children;
-    // 如果存在 options, 优先使用
-    if (options && options.length > 0) {
-      const optionsPrefixCls = optionType === 'button' ? `${prefixCls}-button` : prefixCls;
-      childrenToRender = options.map(option => {
-        if (typeof option === 'string' || typeof option === 'number') {
-          // 此处类型自动推导为 string
-          return (
-            <Radio
-              key={option.toString()}
-              prefixCls={optionsPrefixCls}
-              disabled={disabled}
-              value={option}
-              checked={value === option}
-            >
-              {option}
-            </Radio>
-          );
-        }
-        // 此处类型自动推导为 { label: string value: string }
+  const {
+    prefixCls: customizePrefixCls,
+    className,
+    rootClassName,
+    options,
+    buttonStyle = 'outline' as RadioGroupButtonStyle,
+    disabled,
+    children,
+    size: customizeSize,
+    style,
+    id,
+    onMouseEnter,
+    onMouseLeave,
+    onFocus,
+    onBlur,
+  } = props;
+  const prefixCls = getPrefixCls('radio', customizePrefixCls);
+  const groupPrefixCls = `${prefixCls}-group`;
+
+  // Style
+  const rootCls = useCSSVarCls(prefixCls);
+  const [wrapCSSVar, hashId, cssVarCls] = useStyle(prefixCls, rootCls);
+
+  let childrenToRender = children;
+  // 如果存在 options, 优先使用
+  if (options && options.length > 0) {
+    childrenToRender = options.map((option) => {
+      if (typeof option === 'string' || typeof option === 'number') {
+        // 此处类型自动推导为 string
         return (
           <Radio
-            key={`radio-group-value-options-${option.value}`}
-            prefixCls={optionsPrefixCls}
-            disabled={option.disabled || disabled}
-            value={option.value}
-            checked={value === option.value}
-            style={option.style}
+            key={option.toString()}
+            prefixCls={prefixCls}
+            disabled={disabled}
+            value={option}
+            checked={value === option}
           >
-            {option.label}
+            {option}
           </Radio>
         );
-      });
-    }
+      }
+      // 此处类型自动推导为 { label: string value: string }
+      return (
+        <Radio
+          key={`radio-group-value-options-${option.value}`}
+          prefixCls={prefixCls}
+          disabled={option.disabled || disabled}
+          value={option.value}
+          checked={value === option.value}
+          title={option.title}
+          style={option.style}
+          id={option.id}
+          required={option.required}
+        >
+          {option.label}
+        </Radio>
+      );
+    });
+  }
 
-    const mergedSize = customizeSize || size;
-    const classString = classNames(
-      groupPrefixCls,
-      `${groupPrefixCls}-${buttonStyle}`,
-      {
-        [`${groupPrefixCls}-${mergedSize}`]: mergedSize,
-        [`${groupPrefixCls}-rtl`]: direction === 'rtl',
-      },
-      className,
-    );
-    return (
-      <div
-        {...getDataOrAriaProps(props)}
-        className={classString}
-        style={style}
-        onMouseEnter={onMouseEnter}
-        onMouseLeave={onMouseLeave}
-        id={id}
-        ref={ref}
+  const mergedSize = useSize(customizeSize);
+
+  const classString = classNames(
+    groupPrefixCls,
+    `${groupPrefixCls}-${buttonStyle}`,
+    {
+      [`${groupPrefixCls}-${mergedSize}`]: mergedSize,
+      [`${groupPrefixCls}-rtl`]: direction === 'rtl',
+    },
+    className,
+    rootClassName,
+    hashId,
+    cssVarCls,
+    rootCls,
+  );
+  return wrapCSSVar(
+    <div
+      {...pickAttrs(props, { aria: true, data: true })}
+      className={classString}
+      style={style}
+      onMouseEnter={onMouseEnter}
+      onMouseLeave={onMouseLeave}
+      onFocus={onFocus}
+      onBlur={onBlur}
+      id={id}
+      ref={ref}
+    >
+      <RadioGroupContextProvider
+        value={{
+          onChange: onRadioChange,
+          value,
+          disabled: props.disabled,
+          name: props.name,
+          optionType: props.optionType,
+        }}
       >
         {childrenToRender}
-      </div>
-    );
-  };
-
-  return (
-    <RadioGroupContextProvider
-      value={{
-        onChange: onRadioChange,
-        value,
-        disabled: props.disabled,
-        name: props.name,
-      }}
-    >
-      {renderGroup()}
-    </RadioGroupContextProvider>
+      </RadioGroupContextProvider>
+    </div>,
   );
 });
 
